@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { DocumentDashboard } from "@/components/document-dashboard"
-import { LoginForm } from "@/components/login-form"
+import { AuthForm } from "@/components/auth-form"
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -17,14 +17,31 @@ export default function Home() {
   }, [])
 
   const handleLogin = (username: string, password: string) => {
-    // Simple demo authentication - in production, this would call your backend API
-    if (username === "admin" && password === "admin") {
+    const users = JSON.parse(localStorage.getItem("users") || "[]")
+    const user = users.find((u: any) => u.username === username && u.password === password)
+
+    if ((username === "admin" && password === "admin") || user) {
       localStorage.setItem("isAuthenticated", "true")
       localStorage.setItem("username", username)
       setIsAuthenticated(true)
     } else {
       alert("Неверное имя пользователя или пароль")
     }
+  }
+
+  const handleRegister = (username: string, email: string, password: string) => {
+    const users = JSON.parse(localStorage.getItem("users") || "[]")
+
+    // Check if user already exists
+    const existingUser = users.find((u: any) => u.username === username || u.email === email)
+    if (existingUser) {
+      alert("Пользователь с таким именем или email уже существует")
+      return
+    }
+
+    // Add new user
+    users.push({ username, email, password })
+    localStorage.setItem("users", JSON.stringify(users))
   }
 
   if (isLoading) {
@@ -35,5 +52,5 @@ export default function Home() {
     )
   }
 
-  return isAuthenticated ? <DocumentDashboard /> : <LoginForm onLogin={handleLogin} />
+  return isAuthenticated ? <DocumentDashboard /> : <AuthForm onLogin={handleLogin} onRegister={handleRegister} />
 }
