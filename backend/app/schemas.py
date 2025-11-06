@@ -6,7 +6,6 @@ from app.models import UserRole, DocumentType, DocumentStatus, AssignmentPriorit
 # User schemas
 class UserBase(BaseModel):
     email: EmailStr
-    username: str
     full_name: Optional[str] = None
 
 class UserCreate(UserBase):
@@ -15,12 +14,25 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
-    role: Optional[UserRole] = None
 
 class User(UserBase):
     id: int
-    role: UserRole
     is_active: bool
+    created_at: datetime
+    last_login: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True
+
+# Session schemas
+class SessionCreate(BaseModel):
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+
+class SessionResponse(BaseModel):
+    id: int
+    token: str
+    expires_at: datetime
     created_at: datetime
     
     class Config:
@@ -30,9 +42,22 @@ class User(UserBase):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    user: User
 
 class TokenData(BaseModel):
-    username: Optional[str] = None
+    user_id: Optional[int] = None
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+# Password reset schemas
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+class PasswordResetConfirm(BaseModel):
+    token: str
+    new_password: str
 
 # Document schemas
 class DocumentBase(BaseModel):

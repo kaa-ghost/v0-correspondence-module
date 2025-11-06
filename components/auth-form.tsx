@@ -8,17 +8,17 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, ArrowLeft } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { api, type User } from "@/lib/api"
 
 interface AuthFormProps {
-  onLogin: (username: string, password: string) => void
-  onRegister: (username: string, email: string, password: string) => void
+  onLogin: (user: User, token: string) => void
 }
 
 type ViewType = "login" | "register" | "forgot-password" | "reset-success"
 
-export function AuthForm({ onLogin, onRegister }: AuthFormProps) {
+export function AuthForm({ onLogin }: AuthFormProps) {
   const [view, setView] = useState<ViewType>("login")
-  const [username, setUsername] = useState("")
+  const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -31,10 +31,14 @@ export function AuthForm({ onLogin, onRegister }: AuthFormProps) {
     setError("")
     setIsLoading(true)
 
-    setTimeout(() => {
-      onLogin(username, password)
+    try {
+      const response = await api.login(email, password)
+      onLogin(response.user, response.access_token)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка входа")
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -55,18 +59,20 @@ export function AuthForm({ onLogin, onRegister }: AuthFormProps) {
 
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      onRegister(username, email, password)
+    try {
+      await api.register(email, password, fullName)
       setSuccess("Регистрация успешна! Теперь вы можете войти в систему.")
-      setIsLoading(false)
 
       // Switch to login view after 2 seconds
       setTimeout(() => {
         setView("login")
         setSuccess("")
       }, 2000)
-    }, 1000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка регистрации")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -74,15 +80,19 @@ export function AuthForm({ onLogin, onRegister }: AuthFormProps) {
     setError("")
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      const response = await api.requestPasswordReset(email)
+      setSuccess(response.message)
       setView("reset-success")
-    }, 1000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка отправки письма")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const resetForm = () => {
-    setUsername("")
+    setFullName("")
     setEmail("")
     setPassword("")
     setConfirmPassword("")
@@ -134,13 +144,13 @@ export function AuthForm({ onLogin, onRegister }: AuthFormProps) {
           {view === "login" && (
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Имя пользователя</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="username"
-                  type="text"
-                  placeholder="Введите имя пользователя"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="Введите email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={isLoading}
                 />
@@ -175,9 +185,6 @@ export function AuthForm({ onLogin, onRegister }: AuthFormProps) {
                   Зарегистрироваться
                 </button>
               </div>
-              <div className="mt-4 text-center text-sm text-muted-foreground">
-                <p>Демо доступ: admin / admin</p>
-              </div>
             </form>
           )}
 
@@ -185,13 +192,13 @@ export function AuthForm({ onLogin, onRegister }: AuthFormProps) {
           {view === "register" && (
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="reg-username">Имя пользователя</Label>
+                <Label htmlFor="reg-fullname">Полное имя</Label>
                 <Input
-                  id="reg-username"
+                  id="reg-fullname"
                   type="text"
-                  placeholder="Введите имя пользователя"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Введите полное имя"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   required
                   disabled={isLoading}
                 />
@@ -279,7 +286,7 @@ export function AuthForm({ onLogin, onRegister }: AuthFormProps) {
             <div className="space-y-4 text-center">
               <div className="rounded-lg bg-green-50 p-4 dark:bg-green-950">
                 <p className="text-sm text-green-900 dark:text-green-100">
-                  Письмо с инструкциями по восстановлению пароля отправлено на <strong>{email}</strong>
+                  {success || `Письмо с инструкциями по восстановлению пароля отправлено на ${email}`}
                 </p>
               </div>
               <p className="text-sm text-muted-foreground">

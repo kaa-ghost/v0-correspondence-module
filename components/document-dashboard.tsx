@@ -15,20 +15,20 @@ import { SearchBar } from "@/components/search-bar"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Plus, Bell, User, LogOut } from "lucide-react"
+import type { User as UserType } from "@/lib/api"
 
-export function DocumentDashboard() {
+interface DocumentDashboardProps {
+  currentUser: UserType | null
+  onLogout: () => void
+}
+
+export function DocumentDashboard({ currentUser, onLogout }: DocumentDashboardProps) {
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null)
   const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null)
   const [currentView, setCurrentView] = useState<"documents" | "assignments" | "innovations">("documents")
   const [assignmentSubView, setAssignmentSubView] = useState<"list" | "tree" | "calendar">("list")
   const [documentSubView, setDocumentSubView] = useState<"list" | "calendar">("list")
   const [innovationSubView, setInnovationSubView] = useState<"home" | "proposals" | "registry" | "search">("home")
-
-  const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated")
-    localStorage.removeItem("username")
-    window.location.reload()
-  }
 
   const handleViewChange = (view: "documents" | "assignments" | "innovations", subView?: string) => {
     setCurrentView(view)
@@ -69,10 +69,10 @@ export function DocumentDashboard() {
             <Button variant="ghost" size="icon">
               <Bell className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" title={currentUser?.email || "Пользователь"}>
               <User className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleLogout} title="Выйти">
+            <Button variant="ghost" size="icon" onClick={onLogout} title="Выйти">
               <LogOut className="h-5 w-5" />
             </Button>
           </div>

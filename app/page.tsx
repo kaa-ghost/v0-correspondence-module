@@ -3,45 +3,61 @@
 import { useState, useEffect } from "react"
 import { DocumentDashboard } from "@/components/document-dashboard"
 import { AuthForm } from "@/components/auth-form"
+import { api, type User } from "@/lib/api"
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
 
   useEffect(() => {
-    const authStatus = localStorage.getItem("isAuthenticated")
-    if (authStatus === "true") {
-      setIsAuthenticated(true)
+    const validateSession = async () => {
+      const token = localStorage.getItem("sessionToken")
+
+      if (!token) {
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        const user = await api.validateSession(token)
+        setCurrentUser(user)
+        setIsAuthenticated(true)
+      } catch (error) {
+        // Session invalid or expired, clear local storage
+        localStorage.removeItem("sessionToken")
+        localStorage.removeItem("currentUser")
+        setIsAuthenticated(false)
+      } finally {
+        setIsLoading(false)
+      }
     }
-    setIsLoading(false)
+
+    validateSession()
   }, [])
 
-  const handleLogin = (username: string, password: string) => {
-    const users = JSON.parse(localStorage.getItem("users") || "[]")
-    const user = users.find((u: any) => u.username === username && u.password === password)
-
-    if ((username === "admin" && password === "admin") || user) {
-      localStorage.setItem("isAuthenticated", "true")
-      localStorage.setItem("username", username)
-      setIsAuthenticated(true)
-    } else {
-      alert("Неверное имя пользователя или пароль")
-    }
+  const handleLogin = (user: User, token: string) => {
+    localStorage.setItem("sessionToken", token)
+    localStorage.setItem("currentUser", JSON.stringify(user))
+    setCurrentUser(user)
+    setIsAuthenticated(true)
   }
 
-  const handleRegister = (username: string, email: string, password: string) => {
-    const users = JSON.parse(localStorage.getItem("users") || "[]")
+  const handleLogout = async () => {
+    const token = localStorage.getItem("sessionToken")
 
-    // Check if user already exists
-    const existingUser = users.find((u: any) => u.username === username || u.email === email)
-    if (existingUser) {
-      alert("Пользователь с таким именем или email уже существует")
-      return
+    if (token) {
+      try {
+        await api.logout(token)
+      } catch (error) {
+        console.error("Logout error:", error)
+      }
     }
 
-    // Add new user
-    users.push({ username, email, password })
-    localStorage.setItem("users", JSON.stringify(users))
+    localStorage.removeItem("sessionToken")
+    localStorage.removeItem("currentUser")
+    setCurrentUser(null)
+    setIsAuthenticated(false)
   }
 
   if (isLoading) {
@@ -52,5 +68,9 @@ export default function Home() {
     )
   }
 
-  return isAuthenticated ? <DocumentDashboard /> : <AuthForm onLogin={handleLogin} onRegister={handleRegister} />
+  return isAuthenticated ? (
+    <DocumentDashboard currentUser={currentUser} onLogout={handleLogout} />
+  ) : (
+    <AuthForm onLogin={handleLogin} />
+  )
 }

@@ -13,18 +13,46 @@ class User(Base):
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    username = Column(String, unique=True, index=True, nullable=False)
-    full_name = Column(String)
-    hashed_password = Column(String, nullable=False)
-    role = Column(SQLEnum(UserRole), default=UserRole.USER)
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    full_name = Column(String(255))
+    password_hash = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_login = Column(DateTime, nullable=True)
     
     # Relationships
+    sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
     documents = relationship("Document", back_populates="creator")
     assignments = relationship("Assignment", foreign_keys="Assignment.creator_id", back_populates="creator")
     assigned_tasks = relationship("Assignment", foreign_keys="Assignment.executor_id", back_populates="executor")
+
+class Session(Base):
+    __tablename__ = "sessions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    token = Column(String(500), unique=True, index=True, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    ip_address = Column(String(45))
+    user_agent = Column(Text)
+    
+    # Relationships
+    user = relationship("User", back_populates="sessions")
+
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    token = Column(String(500), unique=True, index=True, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    used = Column(Boolean, default=False)
+    
+    # Relationships
+    user = relationship("User")
 
 class DocumentType(str, enum.Enum):
     INCOMING = "incoming"
