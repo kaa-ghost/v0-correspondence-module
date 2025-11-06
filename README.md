@@ -1,30 +1,170 @@
-# Correspondence module
+# Система управления документами и поручениями
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+Комплексная система для управления корреспонденцией, поручениями и инновационными предложениями.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/kaaghost-7436s-projects/v0-correspondence-module)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/jLiw2zMvHKP)
+## Возможности
 
-## Overview
+### 📄 Модуль Корреспонденция
+- Регистрация входящих и исходящих документов
+- Автоматическая нумерация документов
+- Резервирование номеров
+- Поиск и фильтрация документов
+- Архивирование документов
+- Календарное представление
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+### ✅ Модуль Поручения
+- Создание и управление поручениями
+- Иерархическое представление (дерево поручений)
+- Дочерние и периодические поручения
+- Отслеживание сроков выполнения
+- Уведомления о статусе
+- Календарное представление
 
-## Deployment
+### 💡 Модуль Инновационная продукция
+- Подача инновационных предложений
+- Отслеживание статуса предложений
+- Реестр продукции для внедрения
+- Критерии инновационности
 
-Your project is live at:
+## Технологии
 
-**[https://vercel.com/kaaghost-7436s-projects/v0-correspondence-module](https://vercel.com/kaaghost-7436s-projects/v0-correspondence-module)**
+- **Next.js 16** - React фреймворк с App Router
+- **React 19.2** - UI библиотека
+- **TypeScript** - Типизация
+- **Tailwind CSS v4** - Стилизация
+- **shadcn/ui** - UI компоненты
+- **Lucide React** - Иконки
+- **date-fns** - Работа с датами
 
-## Build your app
+## Установка
 
-Continue building your app on:
+### Предварительные требования
 
-**[https://v0.app/chat/jLiw2zMvHKP](https://v0.app/chat/jLiw2zMvHKP)**
+- Node.js 18.17 или выше
+- npm, yarn или pnpm
 
-## How It Works
+### Шаги установки
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+1. Клонируйте репозиторий:
+\`\`\`bash
+git clone <repository-url>
+cd correspondence-module
+\`\`\`
+
+2. Установите зависимости:
+\`\`\`bash
+npm install
+# или
+yarn install
+# или
+pnpm install
+\`\`\`
+
+3. Запустите сервер разработки:
+\`\`\`bash
+npm run dev
+# или
+yarn dev
+# или
+pnpm dev
+\`\`\`
+
+4. Откройте [http://localhost:3000](http://localhost:3000) в браузере
+
+## Развертывание
+
+### Развертывание на Vercel (рекомендуется)
+
+1. Нажмите кнопку "Publish" в интерфейсе v0
+2. Или используйте [Vercel CLI](https://vercel.com/docs/cli):
+
+\`\`\`bash
+npm i -g vercel
+vercel
+\`\`\`
+
+3. Следуйте инструкциям в терминале
+
+### Развертывание на других платформах
+
+1. Соберите проект:
+\`\`\`bash
+npm run build
+\`\`\`
+
+2. Запустите production сервер:
+\`\`\`bash
+npm start
+\`\`\`
+
+Проект будет доступен на порту 3000.
+
+## Структура проекта
+
+\`\`\`
+├── app/
+│   ├── layout.tsx          # Корневой layout
+│   ├── page.tsx            # Главная страница
+│   └── globals.css         # Глобальные стили
+├── components/
+│   ├── ui/                 # shadcn/ui компоненты
+│   ├── sidebar.tsx         # Боковая навигация
+│   ├── document-*.tsx      # Компоненты документов
+│   ├── assignment-*.tsx    # Компоненты поручений
+│   ├── innovation-*.tsx    # Компоненты инноваций
+│   ├── calendar-view.tsx   # Календарное представление
+│   └── theme-toggle.tsx    # Переключатель темы
+├── lib/
+│   └── utils.ts            # Утилиты
+└── public/                 # Статические файлы
+\`\`\`
+
+## Конфигурация
+
+### Переменные окружения
+
+Создайте файл `.env.local` для локальной разработки:
+
+\`\`\`env
+# Добавьте необходимые переменные окружения
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+\`\`\`
+
+### Next.js конфигурация
+
+Файл `next.config.mjs` содержит базовую конфигурацию. Измените по необходимости:
+
+\`\`\`js
+const nextConfig = {
+  typescript: {
+    ignoreBuildErrors: false, // Измените на false для строгой проверки типов
+  },
+  images: {
+    unoptimized: false, // Измените на false для оптимизации изображений
+  },
+}
+\`\`\`
+
+## Разработка
+
+### Доступные скрипты
+
+- `npm run dev` - Запуск сервера разработки
+- `npm run build` - Сборка для production
+- `npm start` - Запуск production сервера
+- `npm run lint` - Проверка кода линтером
+
+### Темная/Светлая тема
+
+Приложение поддерживает автоматическое переключение между темной и светлой темой. Переключатель находится в правом верхнем углу.
+
+## Поддержка
+
+Для получения помощи:
+- Откройте issue в репозитории
+- Обратитесь к документации Next.js: https://nextjs.org/docs
+- Документация shadcn/ui: https://ui.shadcn.com
+
+## Лицензия
+
+Proprietary - Все права защищены
