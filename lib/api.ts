@@ -1,30 +1,6 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true"
 
-console.log("[v0] API URL configured as:", API_URL)
-console.log("[v0] Demo mode:", DEMO_MODE)
-
-export interface User {
-  id: number
-  email: string
-  full_name: string | null
-  is_active: boolean
-  created_at: string
-  last_login: string | null
-  role?: string // Added role field
-  position?: string // Added position field
-}
-
-export interface LoginResponse {
-  access_token: string
-  token_type: string
-  user: User
-}
-
-export interface ApiError {
-  detail: string
-}
-
+// Demo users for offline mode
 const DEMO_USERS = [
   {
     id: 1,
@@ -50,273 +26,196 @@ const DEMO_USERS = [
   },
 ]
 
-class ApiClient {
-  private baseUrl: string
-  private demoMode: boolean
+let demoMode = false
 
-  constructor(baseUrl: string, demoMode = false) {
-    this.baseUrl = baseUrl
-    this.demoMode = demoMode
+async function fetchWithFallback(url: string, options: RequestInit = {}) {
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    })
+    return response
+  } catch (error) {
+    console.log("[v0] API request failed, switching to demo mode")
+    demoMode = true
+    throw error
   }
+}
 
-  private demoLogin(email: string, password: string): LoginResponse {
-    const user = DEMO_USERS.find((u) => u.email === email && u.password === password)
-    if (!user) {
-      throw new Error("Неверный email или пароль")
-    }
-    const { password: _, ...userWithoutPassword } = user
-    return {
-      access_token: `demo_token_${user.id}_${Date.now()}`,
-      token_type: "bearer",
-      user: userWithoutPassword,
-    }
-  }
-
-  private demoRegister(email: string, password: string, fullName: string): User {
-    const existingUser = DEMO_USERS.find((u) => u.email === email)
-    if (existingUser) {
-      throw new Error("Пользователь с таким email уже существует")
-    }
-    const newUser = {
-      id: DEMO_USERS.length + 1,
-      email,
-      full_name: fullName,
-      role: "user", // Added role field
-      position: "New User", // Added position field
-      is_active: true,
-      created_at: new Date().toISOString(),
-      last_login: null,
-    }
-    DEMO_USERS.push({ ...newUser, password, last_login: new Date().toISOString() })
-    return newUser
-  }
-
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`
-
+export const api = {
+  async login(email: string, password: string) {
     try {
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          "Content-Type": "application/json",
-          ...options.headers,
-        },
-      })
-
-      if (!response.ok) {
-        const error: ApiError = await response.json()
-        throw new Error(error.detail || "An error occurred")
-      }
-
-      return response.json()
-    } catch (error) {
-      throw error
-    }
-  }
-
-  async register(email: string, password: string, fullName: string): Promise<User> {
-    if (this.demoMode) {
-      return this.demoRegister(email, password, fullName)
-    }
-
-    try {
-      return await this.request<User>("/api/auth/register", {
-        method: "POST",
-        body: JSON.stringify({
-          email,
-          password,
-          full_name: fullName,
-        }),
-      })
-    } catch (error) {
-      return this.demoRegister(email, password, fullName)
-    }
-  }
-
-  async login(email: string, password: string): Promise<LoginResponse> {
-    if (this.demoMode) {
-      return this.demoLogin(email, password)
-    }
-
-    try {
-      return await this.request<LoginResponse>("/api/auth/login", {
+      const response = await fetchWithFallback(`${API_URL}/auth/login`, {
         method: "POST",
         body: JSON.stringify({ email, password }),
       })
+
+      if (response.ok) {
+        return await response.json()
+      }
     } catch (error) {
-      return this.demoLogin(email, password)
-    }
-  }
-
-  async logout(token: string): Promise<void> {
-    if (this.demoMode || token.startsWith("demo_token_")) {
-      return
-    }
-
-    return this.request<void>("/api/auth/logout", {
-      method: "POST",
-      body: JSON.stringify({ token }),
-    })
-  }
-
-  async validateSession(token: string): Promise<User> {
-    if (token.startsWith("demo_token_")) {
-      const userId = Number.parseInt(token.split("_")[2])
-      const user = DEMO_USERS.find((u) => u.id === userId)
-      if (!user) {
-        throw new Error("Invalid session")
+      // Demo mode fallback
+      console.log("[v0] Demo mode fallback: login attempt for", email)
+      const user = DEMO_USERS.find((u) => u.email === email && u.password === password)
+      if (user) {
+        const { password: _, ...userWithoutPassword } = user
+        return {
+          access_token: "demo-token-" + user.id,
+          user: userWithoutPassword,
+        }
       }
-      const { password: _, ...userWithoutPassword } = user
-      return userWithoutPassword
+      throw new Error("Invalid credentials")
     }
+    throw new Error("Invalid credentials")
+  },
 
-    return this.request<User>(`/api/auth/validate?token=${token}`)
-  }
-
-  async requestPasswordReset(email: string): Promise<{ message: string; token?: string }> {
-    if (this.demoMode) {
-      const user = DEMO_USERS.find((u) => u.email === email)
-      if (!user) {
-        throw new Error("Пользователь с таким email не найден")
-      }
-      return {
-        message: "Ссылка для восстановления пароля отправлена на ваш email",
-        token: `reset_token_${user.id}`,
-      }
-    }
-
+  async register(email: string, password: string, full_name: string) {
     try {
-      return await this.request("/api/auth/password-reset/request", {
+      const response = await fetchWithFallback(`${API_URL}/auth/register`, {
         method: "POST",
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, password, full_name }),
       })
+
+      if (response.ok) {
+        return await response.json()
+      }
     } catch (error) {
-      console.log("[v0] Backend unavailable, using demo mode")
-      const user = DEMO_USERS.find((u) => u.email === email)
-      if (!user) {
-        throw new Error("Пользователь с таким email не найден")
-      }
+      // Demo mode fallback
+      console.log("[v0] Demo mode fallback: registration for", email)
       return {
-        message: "Ссылка для восстановления пароля отправлена на ваш email (демо-режим)",
-        token: `reset_token_${user.id}`,
+        message: "Registration successful (demo mode)",
+        email,
       }
     }
-  }
+    throw new Error("Registration failed")
+  },
 
-  async confirmPasswordReset(token: string, newPassword: string): Promise<{ message: string }> {
-    if (this.demoMode || token.startsWith("reset_token_")) {
-      console.log("[v0] Demo mode: Password reset (local only)")
-      return { message: "Пароль успешно изменен" }
+  async validateSession(token: string) {
+    try {
+      const response = await fetchWithFallback(`${API_URL}/auth/validate`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        return await response.json()
+      }
+    } catch (error) {
+      // Demo mode fallback
+      console.log("[v0] Demo mode fallback: validating session")
+      const userId = token.replace("demo-token-", "")
+      const user = DEMO_USERS.find((u) => u.id === Number.parseInt(userId))
+      if (user) {
+        const { password: _, ...userWithoutPassword } = user
+        return {
+          valid: true,
+          user: userWithoutPassword,
+        }
+      }
     }
+    throw new Error("Invalid session")
+  },
 
-    return this.request("/api/auth/password-reset/confirm", {
-      method: "POST",
-      body: JSON.stringify({ token, new_password: newPassword }),
-    })
-  }
+  async logout(token: string) {
+    try {
+      const response = await fetchWithFallback(`${API_URL}/auth/logout`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
 
-  async get<T>(endpoint: string, token?: string): Promise<{ data: T }> {
-    // Demo mode fallback for users endpoint
-    if (endpoint === "/users/" && (this.demoMode || !token)) {
-      const demoUsersWithoutPassword = DEMO_USERS.map(({ password, ...user }) => user)
-      return { data: demoUsersWithoutPassword as T }
+      if (response.ok) {
+        return await response.json()
+      }
+    } catch (error) {
+      // Demo mode fallback
+      console.log("[v0] Demo mode fallback: logout")
+      return { message: "Logged out successfully" }
     }
+  },
 
+  async get(endpoint: string, token?: string) {
     try {
       const headers: HeadersInit = {
         "Content-Type": "application/json",
       }
       if (token) {
-        headers["Authorization"] = `Bearer ${token}`
+        headers.Authorization = `Bearer ${token}`
       }
 
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      const response = await fetchWithFallback(`${API_URL}${endpoint}`, {
         method: "GET",
         headers,
       })
 
-      if (!response.ok) {
-        throw new Error("Request failed")
+      if (response.ok) {
+        return await response.json()
       }
-
-      const data = await response.json()
-      return { data }
     } catch (error) {
-      // Fallback to demo data for users endpoint
-      if (endpoint === "/users/") {
-        const demoUsersWithoutPassword = DEMO_USERS.map(({ password, ...user }) => user)
-        return { data: demoUsersWithoutPassword as T }
+      // Demo mode fallback for users list
+      if (endpoint === "/users") {
+        console.log("[v0] Demo mode fallback: GET", endpoint)
+        return DEMO_USERS.map(({ password: _, ...user }) => user)
       }
       throw error
     }
-  }
+    throw new Error("Request failed")
+  },
 
-  async put<T>(endpoint: string, body: any, token?: string): Promise<{ data: T }> {
-    // Demo mode - simulate update
-    if (this.demoMode || (token && token.startsWith("demo_token_"))) {
-      console.log("[v0] Demo mode: PUT request", endpoint, body)
-      return { data: body as T }
-    }
-
+  async put(endpoint: string, data: any, token?: string) {
     try {
       const headers: HeadersInit = {
         "Content-Type": "application/json",
       }
       if (token) {
-        headers["Authorization"] = `Bearer ${token}`
+        headers.Authorization = `Bearer ${token}`
       }
 
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      const response = await fetchWithFallback(`${API_URL}${endpoint}`, {
         method: "PUT",
         headers,
-        body: JSON.stringify(body),
+        body: JSON.stringify(data),
       })
 
-      if (!response.ok) {
-        throw new Error("Request failed")
+      if (response.ok) {
+        return await response.json()
       }
-
-      const data = await response.json()
-      return { data }
     } catch (error) {
-      // Fallback to demo mode
-      console.log("[v0] Demo mode fallback: PUT request", endpoint, body)
-      return { data: body as T }
+      // Demo mode fallback
+      console.log("[v0] Demo mode fallback: PUT request", endpoint, data)
+      return { ...data, updated_at: new Date().toISOString() }
     }
-  }
+    throw new Error("Update failed")
+  },
 
-  async delete<T>(endpoint: string, token?: string): Promise<{ data: T }> {
-    // Demo mode - simulate delete
-    if (this.demoMode || (token && token.startsWith("demo_token_"))) {
-      console.log("[v0] Demo mode: DELETE request", endpoint)
-      return { data: {} as T }
-    }
-
+  async delete(endpoint: string, token?: string) {
     try {
       const headers: HeadersInit = {
         "Content-Type": "application/json",
       }
       if (token) {
-        headers["Authorization"] = `Bearer ${token}`
+        headers.Authorization = `Bearer ${token}`
       }
 
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      const response = await fetchWithFallback(`${API_URL}${endpoint}`, {
         method: "DELETE",
         headers,
       })
 
-      if (!response.ok) {
-        throw new Error("Request failed")
+      if (response.ok) {
+        return await response.json()
       }
-
-      const data = await response.json()
-      return { data }
     } catch (error) {
-      // Fallback to demo mode
+      // Demo mode fallback
       console.log("[v0] Demo mode fallback: DELETE request", endpoint)
-      return { data: {} as T }
+      return { message: "Deleted successfully" }
     }
-  }
+    throw new Error("Delete failed")
+  },
 }
-
-export const api = new ApiClient(API_URL, DEMO_MODE)
