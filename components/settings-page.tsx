@@ -8,13 +8,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Users, Shield, Trash2, CheckCircle2, XCircle, AlertCircle, Search, Edit2, Save, X } from "lucide-react"
+import { Users, Shield, AlertCircle, CheckCircle2, Edit2, Save, X } from "lucide-react"
 import { api } from "@/lib/api"
+import { UsersTable } from "@/components/users-table"
 
 interface User {
   id: number
   email: string
   full_name: string | null
+  position: string | null
   role: "admin" | "user" | "viewer"
   is_active: boolean
   created_at: string
@@ -27,16 +29,14 @@ interface SettingsPageProps {
 
 export function SettingsPage({ currentUser }: SettingsPageProps) {
   const [users, setUsers] = useState<User[]>([])
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [editingUser, setEditingUser] = useState<User | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
 
   const [isEditingProfile, setIsEditingProfile] = useState(false)
   const [profileData, setProfileData] = useState({
     full_name: currentUser.full_name || "",
+    position: currentUser.position || "",
     email: currentUser.email,
   })
 
@@ -48,28 +48,11 @@ export function SettingsPage({ currentUser }: SettingsPageProps) {
     }
   }, [currentUser.role])
 
-  useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredUsers(users)
-    } else {
-      const query = searchQuery.toLowerCase()
-      setFilteredUsers(
-        users.filter(
-          (user) =>
-            user.email.toLowerCase().includes(query) ||
-            user.full_name?.toLowerCase().includes(query) ||
-            user.role.toLowerCase().includes(query),
-        ),
-      )
-    }
-  }, [searchQuery, users])
-
   const loadUsers = async () => {
     try {
       setLoading(true)
       const response = await api.get("/users/")
       setUsers(response.data)
-      setFilteredUsers(response.data)
       setError(null)
     } catch (err: any) {
       setError(err.response?.data?.detail || "Failed to load users")
@@ -82,11 +65,11 @@ export function SettingsPage({ currentUser }: SettingsPageProps) {
     try {
       await api.put(`/users/${userId}`, updates)
       setSuccess("Пользователь успешно обновлен")
-      setEditingUser(null)
       loadUsers()
       setTimeout(() => setSuccess(null), 3000)
     } catch (err: any) {
       setError(err.response?.data?.detail || "Не удалось обновить пользователя")
+      setTimeout(() => setError(null), 5000)
     }
   }
 
@@ -100,6 +83,7 @@ export function SettingsPage({ currentUser }: SettingsPageProps) {
       setTimeout(() => setSuccess(null), 3000)
     } catch (err: any) {
       setError(err.response?.data?.detail || "Не удалось удалить пользователя")
+      setTimeout(() => setError(null), 5000)
     }
   }
 
@@ -111,6 +95,7 @@ export function SettingsPage({ currentUser }: SettingsPageProps) {
       setTimeout(() => setSuccess(null), 3000)
     } catch (err: any) {
       setError(err.response?.data?.detail || "Не удалось обновить профиль")
+      setTimeout(() => setError(null), 5000)
     }
   }
 
@@ -190,6 +175,17 @@ export function SettingsPage({ currentUser }: SettingsPageProps) {
                 )}
               </div>
               <div>
+                <Label>Должность</Label>
+                {isEditingProfile ? (
+                  <Input
+                    value={profileData.position}
+                    onChange={(e) => setProfileData({ ...profileData, position: e.target.value })}
+                  />
+                ) : (
+                  <Input value={currentUser.position || ""} disabled />
+                )}
+              </div>
+              <div>
                 <Label>Роль</Label>
                 <div className="mt-2">
                   <Badge className={getRoleBadgeColor(currentUser.role)}>{getRoleLabel(currentUser.role)}</Badge>
@@ -249,7 +245,7 @@ export function SettingsPage({ currentUser }: SettingsPageProps) {
       <Tabs defaultValue="profile" className="w-full">
         <TabsList>
           <TabsTrigger value="profile">Мой профиль</TabsTrigger>
-          <TabsTrigger value="users">Управление пользователями</TabsTrigger>
+          <TabsTrigger value="users">Пользователи</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
@@ -280,6 +276,17 @@ export function SettingsPage({ currentUser }: SettingsPageProps) {
                     />
                   ) : (
                     <Input value={currentUser.full_name || ""} disabled />
+                  )}
+                </div>
+                <div>
+                  <Label>Должность</Label>
+                  {isEditingProfile ? (
+                    <Input
+                      value={profileData.position}
+                      onChange={(e) => setProfileData({ ...profileData, position: e.target.value })}
+                    />
+                  ) : (
+                    <Input value={currentUser.position || ""} disabled />
                   )}
                 </div>
                 <div>
@@ -321,118 +328,17 @@ export function SettingsPage({ currentUser }: SettingsPageProps) {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  Пользователи системы ({filteredUsers.length})
+                  Управление пользователями
                 </CardTitle>
-                <CardDescription>Управление ролями и правами доступа</CardDescription>
+                <CardDescription>Просмотр и редактирование пользователей системы</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="mb-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Поиск по email, имени или роли..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {filteredUsers.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">Пользователи не найдены</div>
-                  ) : (
-                    filteredUsers.map((user) => (
-                      <div
-                        key={user.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className="font-medium">{user.full_name || user.email}</span>
-                            <Badge className={getRoleBadgeColor(user.role)}>{getRoleLabel(user.role)}</Badge>
-                            {user.is_active ? (
-                              <CheckCircle2 className="h-4 w-4 text-green-500" title="Активен" />
-                            ) : (
-                              <XCircle className="h-4 w-4 text-red-500" title="Деактивирован" />
-                            )}
-                            {user.id === currentUser.id && (
-                              <Badge variant="outline" className="text-xs">
-                                Вы
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">{user.email}</p>
-                          <div className="flex items-center gap-4 mt-1">
-                            <p className="text-xs text-muted-foreground">
-                              Создан: {new Date(user.created_at).toLocaleDateString("ru-RU")}
-                            </p>
-                            {user.last_login && (
-                              <p className="text-xs text-muted-foreground">
-                                Последний вход: {new Date(user.last_login).toLocaleString("ru-RU")}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        {editingUser?.id === user.id ? (
-                          <div className="flex items-center gap-2">
-                            <select
-                              value={editingUser.role}
-                              onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value as any })}
-                              className="border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                            >
-                              <option value="user">Пользователь</option>
-                              <option value="admin">Администратор</option>
-                              <option value="viewer">Наблюдатель</option>
-                            </select>
-                            <Button
-                              size="sm"
-                              onClick={() => handleUpdateUser(user.id, { role: editingUser.role })}
-                              className="flex items-center gap-1"
-                            >
-                              <Save className="h-3 w-3" />
-                              Сохранить
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={() => setEditingUser(null)}>
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setEditingUser(user)}
-                              disabled={user.id === currentUser.id}
-                              className="flex items-center gap-1"
-                            >
-                              <Edit2 className="h-3 w-3" />
-                              Изменить роль
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleUpdateUser(user.id, { is_active: !user.is_active })}
-                              disabled={user.id === currentUser.id}
-                            >
-                              {user.is_active ? "Деактивировать" : "Активировать"}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleDeleteUser(user.id)}
-                              disabled={user.id === currentUser.id}
-                              title="Удалить пользователя"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
+                <UsersTable
+                  users={users}
+                  currentUserId={currentUser.id}
+                  onUpdateUser={handleUpdateUser}
+                  onDeleteUser={handleDeleteUser}
+                />
               </CardContent>
             </Card>
           )}

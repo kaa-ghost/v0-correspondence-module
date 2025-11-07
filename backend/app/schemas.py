@@ -7,6 +7,7 @@ from app.models import UserRole, DocumentType, DocumentStatus, AssignmentPriorit
 class UserBase(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
+    position: Optional[str] = None  # Added position field for job title
 
 class UserCreate(UserBase):
     password: str
@@ -15,6 +16,7 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
+    position: Optional[str] = None  # Added position field for updates
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
 
