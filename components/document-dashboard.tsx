@@ -16,6 +16,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Plus, Bell, User, LogOut } from "lucide-react"
 import type { User as UserType } from "@/lib/api"
+import { SettingsPage } from "@/components/settings-page"
 
 interface DocumentDashboardProps {
   currentUser: UserType | null
@@ -25,12 +26,12 @@ interface DocumentDashboardProps {
 export function DocumentDashboard({ currentUser, onLogout }: DocumentDashboardProps) {
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null)
   const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null)
-  const [currentView, setCurrentView] = useState<"documents" | "assignments" | "innovations">("documents")
+  const [currentView, setCurrentView] = useState<"documents" | "assignments" | "innovations" | "settings">("documents")
   const [assignmentSubView, setAssignmentSubView] = useState<"list" | "tree" | "calendar">("list")
   const [documentSubView, setDocumentSubView] = useState<"list" | "calendar">("list")
   const [innovationSubView, setInnovationSubView] = useState<"home" | "proposals" | "registry" | "search">("home")
 
-  const handleViewChange = (view: "documents" | "assignments" | "innovations", subView?: string) => {
+  const handleViewChange = (view: "documents" | "assignments" | "innovations" | "settings", subView?: string) => {
     setCurrentView(view)
     if (view === "assignments" && subView) {
       setAssignmentSubView(subView as "list" | "tree" | "calendar")
@@ -80,7 +81,9 @@ export function DocumentDashboard({ currentUser, onLogout }: DocumentDashboardPr
 
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden">
-          {currentView === "innovations" ? (
+          {currentView === "settings" ? (
+            currentUser && <SettingsPage currentUser={currentUser} />
+          ) : currentView === "innovations" ? (
             <>
               {innovationSubView === "home" && <InnovationHome />}
               {innovationSubView === "proposals" && <InnovationProposals />}

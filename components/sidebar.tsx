@@ -57,7 +57,7 @@ const innovationItems = [
 ]
 
 interface SidebarProps {
-  onViewChange?: (view: "documents" | "assignments" | "innovations", subView?: string) => void
+  onViewChange?: (view: "documents" | "assignments" | "innovations" | "settings", subView?: string) => void
 }
 
 export function Sidebar({ onViewChange }: SidebarProps) {
@@ -68,7 +68,11 @@ export function Sidebar({ onViewChange }: SidebarProps) {
     setExpandedSections((prev) => (prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]))
   }
 
-  const handleItemClick = (label: string, view: "documents" | "assignments" | "innovations", subView?: string) => {
+  const handleItemClick = (
+    label: string,
+    view: "documents" | "assignments" | "innovations" | "settings",
+    subView?: string,
+  ) => {
     setActiveItem(label)
     onViewChange?.(view, subView)
   }
@@ -206,7 +210,11 @@ export function Sidebar({ onViewChange }: SidebarProps) {
       <div className="border-t border-sidebar-border p-3">
         <Button
           variant="ghost"
-          className="w-full justify-start gap-3 text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          className={cn(
+            "w-full justify-start gap-3 text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            activeItem === "Настройки" && "bg-sidebar-accent text-sidebar-accent-foreground",
+          )}
+          onClick={() => handleItemClick("Настройки", "settings")}
         >
           <Settings className="h-4 w-4" />
           <span className="text-sm">Настройки</span>
