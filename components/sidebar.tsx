@@ -9,7 +9,6 @@ import {
   FileSignature,
   Building2,
   Archive,
-  Folder,
   Search,
   Settings,
   ChevronDown,
@@ -21,9 +20,6 @@ import {
   AlertCircle,
   GitBranch,
   Calendar,
-  Lightbulb,
-  FileCheck,
-  SendIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -33,7 +29,7 @@ const documentItems = [
   { icon: FileSignature, label: "Договоры", count: 5, view: "documents" as const, subView: "list" as const },
   { icon: Building2, label: "Организационные", count: 3, view: "documents" as const, subView: "list" as const },
   { icon: Archive, label: "Архив", view: "documents" as const, subView: "list" as const },
-/*  { icon: Folder, label: "Мои папки", view: "documents" as const, subView: "list" as const },*/
+  /*  { icon: Folder, label: "Мои папки", view: "documents" as const, subView: "list" as const },*/
   { icon: Calendar, label: "Календарь", view: "documents" as const, subView: "calendar" as const },
   { icon: Search, label: "Поиск", view: "documents" as const, subView: "list" as const },
 ]
@@ -49,15 +45,8 @@ const assignmentItems = [
   { icon: Search, label: "Поиск поручений", view: "assignments" as const, subView: "list" as const },
 ]
 
-const innovationItems = [
-  { icon: Lightbulb, label: "Главная", view: "innovations" as const, subView: "home" as const },
-  { icon: SendIcon, label: "Мои предложения", count: 4, view: "innovations" as const, subView: "proposals" as const },
-  { icon: FileCheck, label: "Реестр продукции", view: "innovations" as const, subView: "registry" as const },
-  { icon: Search, label: "Поиск", view: "innovations" as const, subView: "search" as const },
-]
-
 interface SidebarProps {
-  onViewChange?: (view: "documents" | "assignments" | "innovations" | "settings", subView?: string) => void
+  onViewChange?: (view: "documents" | "assignments" | "settings", subView?: string) => void
 }
 
 export function Sidebar({ onViewChange }: SidebarProps) {
@@ -69,7 +58,7 @@ export function Sidebar({ onViewChange }: SidebarProps) {
     if (saved) {
       setExpandedSections(JSON.parse(saved))
     } else {
-      const defaultExpanded = ["Документы", "Поручения", "Инновации"]
+      const defaultExpanded = ["Документы", "Поручения"]
       setExpandedSections(defaultExpanded)
       localStorage.setItem("expandedSections", JSON.stringify(defaultExpanded))
     }
@@ -83,11 +72,7 @@ export function Sidebar({ onViewChange }: SidebarProps) {
     })
   }
 
-  const handleItemClick = (
-    label: string,
-    view: "documents" | "assignments" | "innovations" | "settings",
-    subView?: string,
-  ) => {
+  const handleItemClick = (label: string, view: "documents" | "assignments" | "settings", subView?: string) => {
     setActiveItem(label)
     onViewChange?.(view, subView)
   }
@@ -160,35 +145,6 @@ export function Sidebar({ onViewChange }: SidebarProps) {
           {expandedSections.includes("Поручения") && (
             <div className="mt-1 space-y-1 pl-4">
               {assignmentItems.map((item) => (
-                <Button
-                  key={item.label}
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start gap-3 px-3 py-2 h-auto text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                    activeItem === item.label && "bg-sidebar-accent text-sidebar-accent-foreground",
-                  )}
-                  onClick={() => handleItemClick(item.label, item.view, item.subView)}
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span className="flex-1 text-left text-sm">{item.label}</span>
-                  {item.count && (
-                    <span className="text-xs bg-sidebar-primary text-sidebar-primary-foreground px-2 py-0.5 rounded-full">
-                      {item.count}
-                    </span>
-                  )}
-                </Button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Innovations Section */}
-        <div className="px-3 mb-4">
-          
-
-          {expandedSections.includes("Инновации") && (
-            <div className="mt-1 space-y-1 pl-4">
-              {innovationItems.map((item) => (
                 <Button
                   key={item.label}
                   variant="ghost"

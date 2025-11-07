@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 
 from app.database import engine, Base
-from app.routers import documents, assignments, innovations, auth, users
+from app.routers import documents, assignments, auth, users
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -19,7 +19,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Correspondence Management System API",
-    description="API для системы управления корреспонденцией, поручениями и инновациями",
+    description="API для системы управления корреспонденцией и поручениями",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -38,7 +38,6 @@ app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/api/users", tags=["Users"])
 app.include_router(documents.router, prefix="/api/documents", tags=["Documents"])
 app.include_router(assignments.router, prefix="/api/assignments", tags=["Assignments"])
-app.include_router(innovations.router, prefix="/api/innovations", tags=["Innovations"])
 
 @app.get("/")
 async def root():

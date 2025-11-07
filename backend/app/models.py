@@ -136,36 +136,6 @@ class Assignment(Base):
     parent = relationship("Assignment", remote_side=[id], backref="children")
     attachments = relationship("Attachment", back_populates="assignment")
 
-class InnovationStatus(str, enum.Enum):
-    DRAFT = "draft"
-    SUBMITTED = "submitted"
-    UNDER_REVIEW = "under_review"
-    APPROVED = "approved"
-    REJECTED = "rejected"
-    IMPLEMENTED = "implemented"
-
-class Innovation(Base):
-    __tablename__ = "innovations"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    number = Column(String, unique=True, index=True)
-    title = Column(String, nullable=False)
-    description = Column(Text, nullable=False)
-    category = Column(String)
-    status = Column(SQLEnum(InnovationStatus), default=InnovationStatus.DRAFT)
-    submitted_at = Column(DateTime, nullable=True)
-    reviewed_at = Column(DateTime, nullable=True)
-    feedback = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Foreign keys
-    creator_id = Column(Integer, ForeignKey("users.id"))
-    
-    # Relationships
-    creator = relationship("User")
-    attachments = relationship("Attachment", back_populates="innovation")
-
 class Attachment(Base):
     __tablename__ = "attachments"
     
@@ -179,12 +149,10 @@ class Attachment(Base):
     # Foreign keys (one of these will be set)
     document_id = Column(Integer, ForeignKey("documents.id"), nullable=True)
     assignment_id = Column(Integer, ForeignKey("assignments.id"), nullable=True)
-    innovation_id = Column(Integer, ForeignKey("innovations.id"), nullable=True)
     
     # Relationships
     document = relationship("Document", back_populates="attachments")
     assignment = relationship("Assignment", back_populates="attachments")
-    innovation = relationship("Innovation", back_populates="attachments")
 
 class StatusHistory(Base):
     __tablename__ = "status_history"

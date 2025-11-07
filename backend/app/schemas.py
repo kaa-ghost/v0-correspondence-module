@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 from typing import Optional, List
-from app.models import UserRole, DocumentType, DocumentStatus, AssignmentPriority, AssignmentStatus, InnovationStatus
+from app.models import UserRole, DocumentType, DocumentStatus, AssignmentPriority, AssignmentStatus
 
 # User schemas
 class UserBase(BaseModel):
@@ -124,33 +124,6 @@ class Assignment(AssignmentBase):
     created_at: datetime
     creator_id: int
     parent_id: Optional[int] = None
-    
-    class Config:
-        from_attributes = True
-
-# Innovation schemas
-class InnovationBase(BaseModel):
-    title: str
-    description: str
-    category: Optional[str] = None
-
-class InnovationCreate(InnovationBase):
-    pass
-
-class InnovationUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    category: Optional[str] = None
-    status: Optional[InnovationStatus] = None
-    feedback: Optional[str] = None
-
-class Innovation(InnovationBase):
-    id: int
-    number: str
-    status: InnovationStatus
-    created_at: datetime
-    creator_id: int
-    submitted_at: Optional[datetime] = None
     
     class Config:
         from_attributes = True

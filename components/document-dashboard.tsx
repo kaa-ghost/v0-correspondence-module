@@ -8,9 +8,6 @@ import { AssignmentList } from "@/components/assignment-list"
 import { AssignmentDetails } from "@/components/assignment-details"
 import { AssignmentTree } from "@/components/assignment-tree"
 import { CalendarView } from "@/components/calendar-view"
-import { InnovationHome } from "@/components/innovation-home"
-import { InnovationProposals } from "@/components/innovation-proposals"
-import { InnovationRegistry } from "@/components/innovation-registry"
 import { SearchBar } from "@/components/search-bar"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
@@ -26,12 +23,11 @@ interface DocumentDashboardProps {
 export function DocumentDashboard({ currentUser, onLogout }: DocumentDashboardProps) {
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null)
   const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null)
-  const [currentView, setCurrentView] = useState<"documents" | "assignments" | "innovations" | "settings">("documents")
+  const [currentView, setCurrentView] = useState<"documents" | "assignments" | "settings">("documents")
   const [assignmentSubView, setAssignmentSubView] = useState<"list" | "tree" | "calendar">("list")
   const [documentSubView, setDocumentSubView] = useState<"list" | "calendar">("list")
-  const [innovationSubView, setInnovationSubView] = useState<"home" | "proposals" | "registry" | "search">("home")
 
-  const handleViewChange = (view: "documents" | "assignments" | "innovations" | "settings", subView?: string) => {
+  const handleViewChange = (view: "documents" | "assignments" | "settings", subView?: string) => {
     setCurrentView(view)
     if (view === "assignments" && subView) {
       setAssignmentSubView(subView as "list" | "tree" | "calendar")
@@ -39,15 +35,12 @@ export function DocumentDashboard({ currentUser, onLogout }: DocumentDashboardPr
     if (view === "documents" && subView) {
       setDocumentSubView(subView as "list" | "calendar")
     }
-    if (view === "innovations" && subView) {
-      setInnovationSubView(subView as "home" | "proposals" | "registry" | "search")
-    }
   }
 
   const getButtonText = () => {
     if (currentView === "documents") return "Новый документ"
     if (currentView === "assignments") return "Новое поручение"
-    return "Новое предложение"
+    return "Создать"
   }
 
   return (
@@ -89,13 +82,6 @@ export function DocumentDashboard({ currentUser, onLogout }: DocumentDashboardPr
                 <p className="text-muted-foreground">Пользователь не авторизован</p>
               </div>
             )
-          ) : currentView === "innovations" ? (
-            <>
-              {innovationSubView === "home" && <InnovationHome />}
-              {innovationSubView === "proposals" && <InnovationProposals />}
-              {innovationSubView === "registry" && <InnovationRegistry />}
-              {innovationSubView === "search" && <InnovationProposals />}
-            </>
           ) : currentView === "documents" ? (
             <>
               {documentSubView === "calendar" ? (
