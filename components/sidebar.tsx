@@ -1,157 +1,241 @@
 "use client"
 
-import { FileText, ClipboardList, Lightbulb, Settings, ChevronDown, ChevronRight } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import {
+  FileText,
+  Inbox,
+  Send,
+  FileSignature,
+  Building2,
+  Archive,
+  Folder,
+  Search,
+  Settings,
+  ChevronDown,
+  ChevronRight,
+  ClipboardList,
+  ListTodo,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  GitBranch,
+  Calendar,
+  Lightbulb,
+  FileCheck,
+  SendIcon,
+} from "lucide-react"
+import { cn } from "@/lib/utils"
 
-type Module = "documents" | "assignments" | "innovations" | "settings"
-type View = "list" | "calendar" | "hierarchy"
+const documentItems = [
+  { icon: Inbox, label: "Входящие", count: 12, view: "documents" as const, subView: "list" as const },
+  { icon: Send, label: "Исходящие", count: 8, view: "documents" as const, subView: "list" as const },
+  { icon: FileSignature, label: "Договоры", count: 5, view: "documents" as const, subView: "list" as const },
+  { icon: Building2, label: "Организационные", count: 3, view: "documents" as const, subView: "list" as const },
+  { icon: Archive, label: "Архив", view: "documents" as const, subView: "list" as const },
+/*  { icon: Folder, label: "Мои папки", view: "documents" as const, subView: "list" as const },*/
+  { icon: Calendar, label: "Календарь", view: "documents" as const, subView: "calendar" as const },
+  { icon: Search, label: "Поиск", view: "documents" as const, subView: "list" as const },
+]
 
-type Props = {
-  user: any
-  activeModule: Module
-  activeView: View
-  onModuleChange: (module: Module, view: View) => void
-  expandedSections: string[]
-  onToggleSection: (section: string) => void
+const assignmentItems = [
+  { icon: ClipboardList, label: "Все поручения", view: "assignments" as const, subView: "list" as const },
+  { icon: ListTodo, label: "Мои поручения", count: 15, view: "assignments" as const, subView: "list" as const },
+  { icon: GitBranch, label: "Иерархия", view: "assignments" as const, subView: "tree" as const },
+  { icon: Clock, label: "На исполнении", count: 8, view: "assignments" as const, subView: "list" as const },
+  { icon: AlertCircle, label: "Просроченные", count: 3, view: "assignments" as const, subView: "list" as const },
+  { icon: CheckCircle2, label: "Завершенные", view: "assignments" as const, subView: "list" as const },
+  { icon: Calendar, label: "Календарь", view: "assignments" as const, subView: "calendar" as const },
+  { icon: Search, label: "Поиск поручений", view: "assignments" as const, subView: "list" as const },
+]
+
+const innovationItems = [
+  { icon: Lightbulb, label: "Главная", view: "innovations" as const, subView: "home" as const },
+  { icon: SendIcon, label: "Мои предложения", count: 4, view: "innovations" as const, subView: "proposals" as const },
+  { icon: FileCheck, label: "Реестр продукции", view: "innovations" as const, subView: "registry" as const },
+  { icon: Search, label: "Поиск", view: "innovations" as const, subView: "search" as const },
+]
+
+interface SidebarProps {
+  onViewChange?: (view: "documents" | "assignments" | "innovations" | "settings", subView?: string) => void
 }
 
-export function Sidebar({ user, activeModule, activeView, onModuleChange, expandedSections, onToggleSection }: Props) {
+export function Sidebar({ onViewChange }: SidebarProps) {
+  const [activeItem, setActiveItem] = useState("Входящие")
+  const [expandedSections, setExpandedSections] = useState<string[]>([])
+
+  useEffect(() => {
+    const saved = localStorage.getItem("expandedSections")
+    if (saved) {
+      setExpandedSections(JSON.parse(saved))
+    } else {
+      const defaultExpanded = ["Документы", "Поручения", "Инновации"]
+      setExpandedSections(defaultExpanded)
+      localStorage.setItem("expandedSections", JSON.stringify(defaultExpanded))
+    }
+  }, [])
+
+  const toggleSection = (section: string) => {
+    setExpandedSections((prev) => {
+      const newSections = prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]
+      localStorage.setItem("expandedSections", JSON.stringify(newSections))
+      return newSections
+    })
+  }
+
+  const handleItemClick = (
+    label: string,
+    view: "documents" | "assignments" | "innovations" | "settings",
+    subView?: string,
+  ) => {
+    setActiveItem(label)
+    onViewChange?.(view, subView)
+  }
+
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="p-4 border-b">
-        <h1 className="font-semibold text-lg">Система управления</h1>
-        <p className="text-xs text-muted-foreground mt-1">{user?.full_name}</p>
+    <aside className="w-64 border-r border-sidebar-border bg-sidebar text-sidebar-foreground flex flex-col">
+      {/* Logo */}
+      <div className="px-6 py-5 border-b border-sidebar-border">
+        <div className="flex items-center gap-2">
+          <FileText className="h-6 w-6 text-sidebar-primary" />
+          <span className="font-semibold text-lg">Б5ЭДО</span>
+        </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-2">
-        {/* Корреспонденция */}
-        <div className="mb-2">
+      <nav className="flex-1 overflow-y-auto py-4">
+        {/* Documents Section */}
+        <div className="px-3 mb-4">
           <button
-            onClick={() => onToggleSection("Документы")}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-accent transition-colors"
+            onClick={() => toggleSection("Документы")}
+            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground transition-colors"
           >
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <span className="text-sm font-medium">Корреспонденция</span>
-            </div>
             {expandedSections.includes("Документы") ? (
               <ChevronDown className="h-4 w-4" />
             ) : (
               <ChevronRight className="h-4 w-4" />
             )}
+            <span className="font-bold">Документы</span>
           </button>
+
           {expandedSections.includes("Документы") && (
-            <div className="ml-6 mt-1 space-y-1 pl-4">
-              <button
-                onClick={() => onModuleChange("documents", "list")}
-                className={`w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-accent transition-colors ${
-                  activeModule === "documents" && activeView === "list" ? "bg-accent" : ""
-                }`}
-              >
-                Список документов
-              </button>
-              <button
-                onClick={() => onModuleChange("documents", "calendar")}
-                className={`w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-accent transition-colors ${
-                  activeModule === "documents" && activeView === "calendar" ? "bg-accent" : ""
-                }`}
-              >
-                Календарь
-              </button>
+            <div className="mt-1 space-y-1 pl-4">
+              {documentItems.map((item) => (
+                <Button
+                  key={item.label}
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-3 px-3 py-2 h-auto text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                    activeItem === item.label && "bg-sidebar-accent text-sidebar-accent-foreground",
+                  )}
+                  onClick={() => handleItemClick(item.label, item.view, item.subView)}
+                >
+                  <item.icon className="h-4 w-4 mx-2" />
+                  <span className="flex-1 text-left text-sm">{item.label}</span>
+                  {item.count && (
+                    <span className="text-xs bg-sidebar-primary text-sidebar-primary-foreground px-2 py-0.5 rounded-full">
+                      {item.count}
+                    </span>
+                  )}
+                </Button>
+              ))}
             </div>
           )}
         </div>
 
-        {/* Поручения */}
-        <div className="mb-2">
+        {/* Assignments Section */}
+        <div className="px-3 mb-4">
           <button
-            onClick={() => onToggleSection("Поручения")}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-accent transition-colors"
+            onClick={() => toggleSection("Поручения")}
+            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground transition-colors"
           >
-            <div className="flex items-center gap-2">
-              <ClipboardList className="h-4 w-4" />
-              <span className="text-sm font-medium">Поручения</span>
-            </div>
             {expandedSections.includes("Поручения") ? (
               <ChevronDown className="h-4 w-4" />
             ) : (
               <ChevronRight className="h-4 w-4" />
             )}
+            <span className="font-bold">Поручения</span>
           </button>
+
           {expandedSections.includes("Поручения") && (
-            <div className="ml-6 mt-1 space-y-1 pl-4">
-              <button
-                onClick={() => onModuleChange("assignments", "list")}
-                className={`w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-accent transition-colors ${
-                  activeModule === "assignments" && activeView === "list" ? "bg-accent" : ""
-                }`}
-              >
-                Мои поручения
-              </button>
-              <button
-                onClick={() => onModuleChange("assignments", "hierarchy")}
-                className={`w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-accent transition-colors ${
-                  activeModule === "assignments" && activeView === "hierarchy" ? "bg-accent" : ""
-                }`}
-              >
-                Иерархия
-              </button>
-              <button
-                onClick={() => onModuleChange("assignments", "calendar")}
-                className={`w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-accent transition-colors ${
-                  activeModule === "assignments" && activeView === "calendar" ? "bg-accent" : ""
-                }`}
-              >
-                Календарь
-              </button>
+            <div className="mt-1 space-y-1 pl-4">
+              {assignmentItems.map((item) => (
+                <Button
+                  key={item.label}
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-3 px-3 py-2 h-auto text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                    activeItem === item.label && "bg-sidebar-accent text-sidebar-accent-foreground",
+                  )}
+                  onClick={() => handleItemClick(item.label, item.view, item.subView)}
+                >
+                  <item.icon className="h-4 w-4" />
+                  <span className="flex-1 text-left text-sm">{item.label}</span>
+                  {item.count && (
+                    <span className="text-xs bg-sidebar-primary text-sidebar-primary-foreground px-2 py-0.5 rounded-full">
+                      {item.count}
+                    </span>
+                  )}
+                </Button>
+              ))}
             </div>
           )}
         </div>
 
-        {/* Инновации */}
-        <div className="mb-2">
+        {/* Innovations Section */}
+        <div className="px-3 mb-4">
           <button
-            onClick={() => onToggleSection("Инновации")}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-accent transition-colors"
+            onClick={() => toggleSection("Инновации")}
+            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground transition-colors"
           >
-            <div className="flex items-center gap-2">
-              <Lightbulb className="h-4 w-4" />
-              <span className="text-sm font-medium">Инновации</span>
-            </div>
             {expandedSections.includes("Инновации") ? (
               <ChevronDown className="h-4 w-4" />
             ) : (
               <ChevronRight className="h-4 w-4" />
             )}
+            <span className="font-bold">Инновации</span>
           </button>
+
           {expandedSections.includes("Инновации") && (
-            <div className="ml-6 mt-1 space-y-1 pl-4">
-              <button
-                onClick={() => onModuleChange("innovations", "list")}
-                className={`w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-accent transition-colors ${
-                  activeModule === "innovations" && activeView === "list" ? "bg-accent" : ""
-                }`}
-              >
-                Главная
-              </button>
+            <div className="mt-1 space-y-1 pl-4">
+              {innovationItems.map((item) => (
+                <Button
+                  key={item.label}
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-3 px-3 py-2 h-auto text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                    activeItem === item.label && "bg-sidebar-accent text-sidebar-accent-foreground",
+                  )}
+                  onClick={() => handleItemClick(item.label, item.view, item.subView)}
+                >
+                  <item.icon className="h-4 w-4" />
+                  <span className="flex-1 text-left text-sm">{item.label}</span>
+                  {item.count && (
+                    <span className="text-xs bg-sidebar-primary text-sidebar-primary-foreground px-2 py-0.5 rounded-full">
+                      {item.count}
+                    </span>
+                  )}
+                </Button>
+              ))}
             </div>
           )}
         </div>
-
-        {/* Настройки */}
-        {user?.role === "admin" && (
-          <button
-            onClick={() => onModuleChange("settings", "list")}
-            className={`w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors ${
-              activeModule === "settings" ? "bg-accent" : ""
-            }`}
-          >
-            <Settings className="h-4 w-4" />
-            <span className="text-sm font-medium">Настройки</span>
-          </button>
-        )}
       </nav>
-    </div>
+
+      {/* Settings */}
+      <div className="border-t border-sidebar-border p-3">
+        <Button
+          variant="ghost"
+          className={cn(
+            "w-full justify-start gap-3 text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            activeItem === "Настройки" && "bg-sidebar-accent text-sidebar-accent-foreground",
+          )}
+          onClick={() => handleItemClick("Настройки", "settings")}
+        >
+          <Settings className="h-4 w-4" />
+          <span className="text-sm">Настройки</span>
+        </Button>
+      </div>
+    </aside>
   )
 }
