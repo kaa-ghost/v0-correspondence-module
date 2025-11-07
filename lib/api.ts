@@ -1,5 +1,7 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
+console.log("[v0] API URL configured as:", API_URL)
+
 export interface User {
   id: number
   email: string
@@ -29,20 +31,36 @@ class ApiClient {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`
 
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
+    console.log("[v0] API Request:", {
+      url,
+      method: options.method || "GET",
+      endpoint,
     })
 
-    if (!response.ok) {
-      const error: ApiError = await response.json()
-      throw new Error(error.detail || "An error occurred")
-    }
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...options.headers,
+        },
+      })
 
-    return response.json()
+      console.log("[v0] API Response:", {
+        status: response.status,
+        ok: response.ok,
+      })
+
+      if (!response.ok) {
+        const error: ApiError = await response.json()
+        throw new Error(error.detail || "An error occurred")
+      }
+
+      return response.json()
+    } catch (error) {
+      console.error("[v0] API Error:", error)
+      throw error
+    }
   }
 
   async register(email: string, password: string, fullName: string): Promise<User> {

@@ -31,11 +31,21 @@ export function AuthForm({ onLogin }: AuthFormProps) {
     setError("")
     setIsLoading(true)
 
+    console.log("[v0] Attempting login with email:", email)
+
     try {
       const response = await api.login(email, password)
+      console.log("[v0] Login successful:", response)
       onLogin(response.user, response.access_token)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка входа")
+      console.error("[v0] Login error:", err)
+      if (err instanceof TypeError && err.message.includes("fetch")) {
+        setError(
+          "Не удается подключиться к серверу. Убедитесь, что backend запущен на http://localhost:8000 или используйте демо-режим (admin@test.com / admin123)",
+        )
+      } else {
+        setError(err instanceof Error ? err.message : "Ошибка входа")
+      }
     } finally {
       setIsLoading(false)
     }
@@ -46,7 +56,6 @@ export function AuthForm({ onLogin }: AuthFormProps) {
     setError("")
     setSuccess("")
 
-    // Validation
     if (password.length < 6) {
       setError("Пароль должен содержать минимум 6 символов")
       return
@@ -59,17 +68,24 @@ export function AuthForm({ onLogin }: AuthFormProps) {
 
     setIsLoading(true)
 
+    console.log("[v0] Attempting registration with email:", email)
+
     try {
       await api.register(email, password, fullName)
+      console.log("[v0] Registration successful")
       setSuccess("Регистрация успешна! Теперь вы можете войти в систему.")
 
-      // Switch to login view after 2 seconds
       setTimeout(() => {
         setView("login")
         setSuccess("")
       }, 2000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка регистрации")
+      console.error("[v0] Registration error:", err)
+      if (err instanceof TypeError && err.message.includes("fetch")) {
+        setError("Не удается подключиться к серверу. Убедитесь, что backend запущен на http://localhost:8000")
+      } else {
+        setError(err instanceof Error ? err.message : "Ошибка регистрации")
+      }
     } finally {
       setIsLoading(false)
     }
@@ -80,12 +96,20 @@ export function AuthForm({ onLogin }: AuthFormProps) {
     setError("")
     setIsLoading(true)
 
+    console.log("[v0] Requesting password reset for:", email)
+
     try {
       const response = await api.requestPasswordReset(email)
+      console.log("[v0] Password reset requested:", response)
       setSuccess(response.message)
       setView("reset-success")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка отправки письма")
+      console.error("[v0] Password reset error:", err)
+      if (err instanceof TypeError && err.message.includes("fetch")) {
+        setError("Не удается подключиться к серверу. Убедитесь, что backend запущен на http://localhost:8000")
+      } else {
+        setError(err instanceof Error ? err.message : "Ошибка отправки письма")
+      }
     } finally {
       setIsLoading(false)
     }
@@ -184,6 +208,10 @@ export function AuthForm({ onLogin }: AuthFormProps) {
                 <button type="button" onClick={() => switchView("register")} className="text-primary hover:underline">
                   Зарегистрироваться
                 </button>
+              </div>
+              <div className="rounded-lg bg-muted p-3 text-center text-sm">
+                <p className="font-medium">Демо-доступ:</p>
+                <p className="text-muted-foreground">admin@test.com / admin123</p>
               </div>
             </form>
           )}
