@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   FileText,
@@ -62,10 +62,25 @@ interface SidebarProps {
 
 export function Sidebar({ onViewChange }: SidebarProps) {
   const [activeItem, setActiveItem] = useState("Входящие")
-  const [expandedSections, setExpandedSections] = useState<string[]>(["Документы", "Поручения", "Инновации"])
+  const [expandedSections, setExpandedSections] = useState<string[]>([])
+
+  useEffect(() => {
+    const saved = localStorage.getItem("expandedSections")
+    if (saved) {
+      setExpandedSections(JSON.parse(saved))
+    } else {
+      const defaultExpanded = ["Документы", "Поручения", "Инновации"]
+      setExpandedSections(defaultExpanded)
+      localStorage.setItem("expandedSections", JSON.stringify(defaultExpanded))
+    }
+  }, [])
 
   const toggleSection = (section: string) => {
-    setExpandedSections((prev) => (prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]))
+    setExpandedSections((prev) => {
+      const newSections = prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]
+      localStorage.setItem("expandedSections", JSON.stringify(newSections))
+      return newSections
+    })
   }
 
   const handleItemClick = (
@@ -104,7 +119,7 @@ export function Sidebar({ onViewChange }: SidebarProps) {
           </button>
 
           {expandedSections.includes("Документы") && (
-            <div className="mt-1 space-y-1">
+            <div className="mt-1 space-y-1 pl-4">
               {documentItems.map((item) => (
                 <Button
                   key={item.label}
@@ -143,7 +158,7 @@ export function Sidebar({ onViewChange }: SidebarProps) {
           </button>
 
           {expandedSections.includes("Поручения") && (
-            <div className="mt-1 space-y-1">
+            <div className="mt-1 space-y-1 pl-4">
               {assignmentItems.map((item) => (
                 <Button
                   key={item.label}
@@ -154,8 +169,8 @@ export function Sidebar({ onViewChange }: SidebarProps) {
                   )}
                   onClick={() => handleItemClick(item.label, item.view, item.subView)}
                 >
-                  <item.icon className="h-4 w-4 mx-2" />
-                  <span className="flex-1 text-left text-sm mx-0">{item.label}</span>
+                  <item.icon className="h-4 w-4" />
+                  <span className="flex-1 text-left text-sm">{item.label}</span>
                   {item.count && (
                     <span className="text-xs bg-sidebar-primary text-sidebar-primary-foreground px-2 py-0.5 rounded-full">
                       {item.count}
@@ -167,6 +182,7 @@ export function Sidebar({ onViewChange }: SidebarProps) {
           )}
         </div>
 
+        {/* Innovations Section */}
         <div className="px-3 mb-4">
           <button
             onClick={() => toggleSection("Инновации")}
@@ -181,7 +197,7 @@ export function Sidebar({ onViewChange }: SidebarProps) {
           </button>
 
           {expandedSections.includes("Инновации") && (
-            <div className="mt-1 space-y-1">
+            <div className="mt-1 space-y-1 pl-4">
               {innovationItems.map((item) => (
                 <Button
                   key={item.label}
