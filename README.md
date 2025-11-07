@@ -36,7 +36,7 @@
 
 ### Frontend
 - **Next.js 16** - React фреймворк с Server Components
-- **React 19** - UI библиотека
+## *React 19** - UI библиотека
 - **TypeScript** - Типизация
 - **Tailwind CSS v4** - Стилизация
 - **shadcn/ui** - UI компоненты
