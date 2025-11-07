@@ -4,7 +4,7 @@
 
 ## Архитектура
 
-**Frontend:** React 18 + TypeScript + Vite  
+**Frontend:** Next.js 16 + React 19 + TypeScript  
 **Backend:** Python FastAPI  
 **Database:** PostgreSQL (Neon)
 
@@ -35,14 +35,14 @@
 ## Технологии
 
 ### Frontend
-- **React 18** - UI библиотека
+- **Next.js 16** - React фреймворк с Server Components
+- **React 19** - UI библиотека
 - **TypeScript** - Типизация
-- **Vite** - Сборщик и dev-сервер
-- **React Router** - Маршрутизация
-- **TanStack Query** - Управление серверным состоянием
-- **Tailwind CSS** - Стилизация
-- **Radix UI** - Компоненты
+- **Tailwind CSS v4** - Стилизация
+- **shadcn/ui** - UI компоненты
+- **Radix UI** - Примитивы компонентов
 - **Lucide React** - Иконки
+- **next-themes** - Управление темой
 
 ### Backend
 - **FastAPI** - Python веб-фреймворк
@@ -97,16 +97,17 @@ python main.py
 Backend будет доступен на http://localhost:8000  
 API документация: http://localhost:8000/docs
 
-### Frontend (React)
+### Frontend (Next.js)
 
-1. Перейдите в директорию frontend:
-\`\`\`bash
-cd frontend
-\`\`\`
-
-2. Установите зависимости:
+1. Установите зависимости:
 \`\`\`bash
 npm install
+\`\`\`
+
+2. Настройте переменные окружения (опционально):
+\`\`\`bash
+cp .env.example .env.local
+# Отредактируйте .env.local файл с вашими настройками
 \`\`\`
 
 3. Запустите dev-сервер:
@@ -126,28 +127,35 @@ Password: `admin123`
 ## Структура проекта
 
 \`\`\`
-├── frontend/               # React приложение
-│   ├── src/
-│   │   ├── components/    # React компоненты
-│   │   ├── pages/         # Страницы приложения
-│   │   ├── lib/           # Утилиты и API клиент
-│   │   ├── App.tsx        # Главный компонент
-│   │   └── main.tsx       # Точка входа
-│   ├── index.html
-│   └── vite.config.ts
+├── app/                   # Next.js App Router
+│   ├── page.tsx          # Главная страница
+│   ├── layout.tsx        # Корневой layout
+│   └── globals.css       # Глобальные стили
 │
-├── backend/               # FastAPI приложение
+├── components/           # React компоненты
+│   ├── ui/              # UI компоненты (shadcn/ui)
+│   ├── auth-form.tsx    # Форма авторизации
+│   ├── sidebar.tsx      # Боковое меню
+│   ├── document-*.tsx   # Компоненты документов
+│   ├── assignment-*.tsx # Компоненты поручений
+│   └── innovation-*.tsx # Компоненты инноваций
+│
+├── lib/                 # Утилиты и API клиент
+│   ├── utils.ts        # Вспомогательные функции
+│   └── api.ts          # API клиент
+│
+├── backend/             # FastAPI приложение
 │   ├── app/
-│   │   ├── models.py      # SQLAlchemy модели
-│   │   ├── schemas.py     # Pydantic схемы
-│   │   ├── auth.py        # Аутентификация
-│   │   ├── database.py    # Подключение к БД
-│   │   └── routers/       # API endpoints
-│   ├── main.py            # Точка входа FastAPI
-│   ├── init_db.py         # Инициализация БД
+│   │   ├── models.py    # SQLAlchemy модели
+│   │   ├── schemas.py   # Pydantic схемы
+│   │   ├── auth.py      # Аутентификация
+│   │   ├── database.py  # Подключение к БД
+│   │   └── routers/     # API endpoints
+│   ├── main.py          # Точка входа FastAPI
+│   ├── init_db.py       # Инициализация БД
 │   └── requirements.txt
 │
-└── scripts/               # SQL скрипты
+└── scripts/             # SQL скрипты
     ├── 001_create_users_sessions.sql
     ├── 002_create_all_tables.sql
     ├── 003_create_test_user.sql
@@ -159,10 +167,11 @@ Password: `admin123`
 ### Frontend (Vercel)
 
 \`\`\`bash
-cd frontend
 npm run build
 vercel --prod
 \`\`\`
+
+Или используйте кнопку "Publish" в v0 для автоматического деплоя.
 
 ### Backend (Railway/Render)
 
@@ -179,9 +188,8 @@ cd backend
 docker-compose up -d
 
 # Frontend
-cd frontend
 docker build -t correspondence-frontend .
-docker run -p 3000:80 correspondence-frontend
+docker run -p 3000:3000 correspondence-frontend
 \`\`\`
 
 ## API Endpoints
@@ -213,9 +221,9 @@ docker run -p 3000:80 correspondence-frontend
 ## Разработка
 
 ### Frontend скрипты
-- `npm run dev` - Запуск dev-сервера
+- `npm run dev` - Запуск dev-сервера Next.js
 - `npm run build` - Сборка для production
-- `npm run preview` - Предпросмотр production build
+- `npm run start` - Запуск production build
 - `npm run lint` - Проверка кода
 
 ### Backend команды
