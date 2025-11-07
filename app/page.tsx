@@ -24,7 +24,6 @@ export default function Home() {
         setCurrentUser(user)
         setIsAuthenticated(true)
       } catch (error) {
-        // Session invalid or expired, clear local storage
         localStorage.removeItem("sessionToken")
         localStorage.removeItem("currentUser")
         setIsAuthenticated(false)

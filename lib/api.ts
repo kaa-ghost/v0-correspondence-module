@@ -86,12 +86,6 @@ class ApiClient {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`
 
-    console.log("[v0] API Request:", {
-      url,
-      method: options.method || "GET",
-      endpoint,
-    })
-
     try {
       const response = await fetch(url, {
         ...options,
@@ -101,11 +95,6 @@ class ApiClient {
         },
       })
 
-      console.log("[v0] API Response:", {
-        status: response.status,
-        ok: response.ok,
-      })
-
       if (!response.ok) {
         const error: ApiError = await response.json()
         throw new Error(error.detail || "An error occurred")
@@ -113,14 +102,12 @@ class ApiClient {
 
       return response.json()
     } catch (error) {
-      console.error("[v0] API Error:", error)
       throw error
     }
   }
 
   async register(email: string, password: string, fullName: string): Promise<User> {
     if (this.demoMode) {
-      console.log("[v0] Demo mode: Registering user locally")
       return this.demoRegister(email, password, fullName)
     }
 
@@ -134,14 +121,12 @@ class ApiClient {
         }),
       })
     } catch (error) {
-      console.log("[v0] Backend unavailable, falling back to demo mode")
       return this.demoRegister(email, password, fullName)
     }
   }
 
   async login(email: string, password: string): Promise<LoginResponse> {
     if (this.demoMode) {
-      console.log("[v0] Demo mode: Authenticating user locally")
       return this.demoLogin(email, password)
     }
 
@@ -151,14 +136,12 @@ class ApiClient {
         body: JSON.stringify({ email, password }),
       })
     } catch (error) {
-      console.log("[v0] Backend unavailable, falling back to demo mode")
       return this.demoLogin(email, password)
     }
   }
 
   async logout(token: string): Promise<void> {
     if (this.demoMode || token.startsWith("demo_token_")) {
-      console.log("[v0] Demo mode: Logout (local only)")
       return
     }
 

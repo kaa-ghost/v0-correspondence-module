@@ -31,14 +31,10 @@ export function AuthForm({ onLogin }: AuthFormProps) {
     setError("")
     setIsLoading(true)
 
-    console.log("[v0] Attempting login with email:", email)
-
     try {
       const response = await api.login(email, password)
-      console.log("[v0] Login successful:", response)
       onLogin(response.user, response.access_token)
     } catch (err) {
-      console.error("[v0] Login error:", err)
       setError(err instanceof Error ? err.message : "Ошибка входа")
     } finally {
       setIsLoading(false)
@@ -62,11 +58,8 @@ export function AuthForm({ onLogin }: AuthFormProps) {
 
     setIsLoading(true)
 
-    console.log("[v0] Attempting registration with email:", email)
-
     try {
       await api.register(email, password, fullName)
-      console.log("[v0] Registration successful")
       setSuccess("Регистрация успешна! Теперь вы можете войти в систему.")
 
       setTimeout(() => {
@@ -74,7 +67,6 @@ export function AuthForm({ onLogin }: AuthFormProps) {
         setSuccess("")
       }, 2000)
     } catch (err) {
-      console.error("[v0] Registration error:", err)
       setError(err instanceof Error ? err.message : "Ошибка регистрации")
     } finally {
       setIsLoading(false)
@@ -86,15 +78,11 @@ export function AuthForm({ onLogin }: AuthFormProps) {
     setError("")
     setIsLoading(true)
 
-    console.log("[v0] Requesting password reset for:", email)
-
     try {
       const response = await api.requestPasswordReset(email)
-      console.log("[v0] Password reset requested:", response)
       setSuccess(response.message)
       setView("reset-success")
     } catch (err) {
-      console.error("[v0] Password reset error:", err)
       setError(err instanceof Error ? err.message : "Ошибка отправки письма")
     } finally {
       setIsLoading(false)
