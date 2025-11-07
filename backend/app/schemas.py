@@ -67,29 +67,33 @@ class PasswordResetConfirm(BaseModel):
 
 # Document schemas
 class DocumentBase(BaseModel):
-    title: str
-    type: DocumentType
-    content: Optional[str] = None
-    sender: Optional[str] = None
-    recipient: Optional[str] = None
+    source: str = Field(..., description="Источник получения документа")
+    doc_date: datetime = Field(..., description="Дата документа")
+    doc_time: datetime = Field(..., description="Время получения документа")
+    number: str = Field(..., description="Регистрационный номер")
+    sender_name: str = Field(..., description="ФИО отправителя")
+    received_by_user_id: int = Field(..., description="ID пользователя, который принял")
+    title: Optional[str] = Field(None, description="Тема документа")
+    description: Optional[str] = Field(None, description="Описание")
 
 class DocumentCreate(DocumentBase):
     pass
 
 class DocumentUpdate(BaseModel):
+    source: Optional[str] = None
+    doc_date: Optional[datetime] = None
+    doc_time: Optional[datetime] = None
+    sender_name: Optional[str] = None
+    received_by_user_id: Optional[int] = None
+    status: Optional[str] = None
     title: Optional[str] = None
-    status: Optional[DocumentStatus] = None
-    content: Optional[str] = None
-    sender: Optional[str] = None
-    recipient: Optional[str] = None
+    description: Optional[str] = None
 
 class Document(DocumentBase):
     id: int
-    number: str
-    status: DocumentStatus
-    registration_date: datetime
+    status: str
     created_at: datetime
-    creator_id: int
+    created_by_user_id: Optional[int] = None
     
     class Config:
         from_attributes = True

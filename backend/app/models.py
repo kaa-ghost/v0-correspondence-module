@@ -63,26 +63,30 @@ class DocumentType(str, enum.Enum):
     CONTRACT = "contract"
 
 class DocumentStatus(str, enum.Enum):
-    DRAFT = "draft"
-    REGISTERED = "registered"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    ARCHIVED = "archived"
+    NEW = "new"
+    IN_PROGRESS = "in-progress"
+    PROCESSED = "processed"
 
 class Document(Base):
     __tablename__ = "documents"
     
     id = Column(Integer, primary_key=True, index=True)
-    number = Column(String, unique=True, index=True)
-    title = Column(String, nullable=False)
-    type = Column(SQLEnum(DocumentType), nullable=False)
-    status = Column(SQLEnum(DocumentStatus), default=DocumentStatus.DRAFT)
+    source = Column(String(255), nullable=False)  # Источник
+    doc_date = Column(DateTime, nullable=False)  # Дата
+    doc_time = Column(DateTime, nullable=False)  # Время
+    number = Column(String(100), unique=True, index=True, nullable=False)  # Номер
+    sender_name = Column(String(255), nullable=False)  # ФИО отправителя
+    received_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # Кто принял
+    status = Column(SQLEnum(DocumentStatus), default=DocumentStatus.NEW, nullable=False)
+    title = Column(String(500))  # Тема
+    description = Column(Text)  # Описание
     content = Column(Text)
     sender = Column(String)
     recipient = Column(String)
     registration_date = Column(DateTime, default=datetime.utcnow)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_by_user_id = Column(Integer, ForeignKey("users.id"))
     
     # Foreign keys
     creator_id = Column(Integer, ForeignKey("users.id"))
@@ -90,6 +94,8 @@ class Document(Base):
     # Relationships
     creator = relationship("User", back_populates="documents")
     attachments = relationship("Attachment", back_populates="document")
+    received_by = relationship("User", foreign_keys=[received_by_user_id])
+    created_by = relationship("User", foreign_keys=[created_by_user_id])
 
 class AssignmentPriority(str, enum.Enum):
     LOW = "low"
