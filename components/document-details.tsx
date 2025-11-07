@@ -4,19 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import {
-  Download,
-  Printer,
-  Share2,
-  Archive,
-  FileText,
-  Calendar,
-  User,
-  Building,
-  Hash,
-  Clock,
-  CheckCircle2,
-} from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { StatusHistory } from "@/components/status-history"
+import { Download, Printer, Share2, Archive, FileText, Calendar, User, Building, Hash } from "lucide-react"
 
 interface DocumentDetailsProps {
   documentId: string
@@ -119,77 +109,59 @@ export function DocumentDetails({ documentId }: DocumentDetailsProps) {
 
         <Separator />
 
-        {/* Document Content */}
-        <div>
-          <h3 className="font-semibold text-card-foreground mb-3">Содержание документа</h3>
-          <Card className="p-4 bg-secondary/30 border-border">
-            <p className="text-sm text-card-foreground leading-relaxed">
-              Уважаемые коллеги, просим предоставить подробную информацию о вашей продукции, включая технические
-              характеристики, сертификаты соответствия и прайс-лист. Информация необходима для рассмотрения возможности
-              сотрудничества.
-            </p>
-          </Card>
-        </div>
+        <Tabs defaultValue="content" className="w-full">
+          <TabsList className="w-full justify-start">
+            <TabsTrigger value="content">Содержание</TabsTrigger>
+            <TabsTrigger value="history">История изменений</TabsTrigger>
+          </TabsList>
 
-        {/* Attachments */}
-        <div>
-          <h3 className="font-semibold text-card-foreground mb-3">Вложения</h3>
-          <div className="space-y-2">
-            <Card className="p-3 bg-secondary/30 border-border hover:bg-secondary/50 transition-colors cursor-pointer">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded">
-                  <FileText className="h-4 w-4 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-card-foreground">Запрос_информации.pdf</p>
-                  <p className="text-xs text-muted-foreground">245 KB</p>
-                </div>
-                <Button variant="ghost" size="sm">
-                  <Download className="h-4 w-4" />
-                </Button>
-              </div>
-            </Card>
-          </div>
-        </div>
+          <TabsContent value="content" className="space-y-6 mt-6">
+            {/* Document Content */}
+            <div>
+              <h3 className="font-semibold text-card-foreground mb-3">Содержание документа</h3>
+              <Card className="p-4 bg-secondary/30 border-border">
+                <p className="text-sm text-card-foreground leading-relaxed">
+                  Уважаемые коллеги, просим предоставить подробную информацию о вашей продукции, включая технические
+                  характеристики, сертификаты соответствия и прайс-лист. Информация необходима для рассмотрения
+                  возможности сотрудничества.
+                </p>
+              </Card>
+            </div>
 
-        {/* Timeline */}
-        <div>
-          <h3 className="font-semibold text-card-foreground mb-3">История действий</h3>
-          <div className="space-y-4">
-            <div className="flex gap-3">
-              <div className="flex flex-col items-center">
-                <div className="p-1.5 bg-primary/10 rounded-full">
-                  <CheckCircle2 className="h-3 w-3 text-primary" />
-                </div>
-                <div className="w-px h-full bg-border mt-2" />
-              </div>
-              <div className="flex-1 pb-4">
-                <p className="text-sm font-medium text-card-foreground">Документ зарегистрирован</p>
-                <p className="text-xs text-muted-foreground">06.11.2025, 10:30</p>
+            {/* Attachments */}
+            <div>
+              <h3 className="font-semibold text-card-foreground mb-3">Вложения</h3>
+              <div className="space-y-2">
+                <Card className="p-3 bg-secondary/30 border-border hover:bg-secondary/50 transition-colors cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded">
+                      <FileText className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-card-foreground">Запрос_информации.pdf</p>
+                      <p className="text-xs text-muted-foreground">245 KB</p>
+                    </div>
+                    <Button variant="ghost" size="sm">
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </Card>
               </div>
             </div>
 
-            <div className="flex gap-3">
-              <div className="flex flex-col items-center">
-                <div className="p-1.5 bg-accent/10 rounded-full">
-                  <Clock className="h-3 w-3 text-accent" />
-                </div>
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-card-foreground">Назначен ответственный</p>
-                <p className="text-xs text-muted-foreground">06.11.2025, 10:35</p>
-              </div>
+            {/* Actions */}
+            <div className="flex gap-3 pt-4">
+              <Button className="flex-1">Взять в работу</Button>
+              <Button variant="outline" className="flex-1 bg-transparent">
+                Переадресовать
+              </Button>
             </div>
-          </div>
-        </div>
+          </TabsContent>
 
-        {/* Actions */}
-        <div className="flex gap-3 pt-4">
-          <Button className="flex-1">Взять в работу</Button>
-          <Button variant="outline" className="flex-1 bg-transparent">
-            Переадресовать
-          </Button>
-        </div>
+          <TabsContent value="history" className="mt-6">
+            <StatusHistory entityType="document" entityId={Number.parseInt(documentId)} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   )

@@ -185,3 +185,19 @@ class Attachment(Base):
     document = relationship("Document", back_populates="attachments")
     assignment = relationship("Assignment", back_populates="attachments")
     innovation = relationship("Innovation", back_populates="attachments")
+
+class StatusHistory(Base):
+    __tablename__ = "status_history"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    entity_type = Column(String(50), nullable=False)  # 'document' or 'assignment'
+    entity_id = Column(Integer, nullable=False)
+    old_status = Column(String(50), nullable=True)  # Previous status
+    new_status = Column(String(50), nullable=False)  # New status
+    changed_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    changed_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    comment = Column(Text, nullable=True)
+    entity_version = Column(Integer, default=1, nullable=False)
+    
+    # Relationships
+    changed_by = relationship("User")

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
+import { StatusHistory } from "@/components/status-history"
 import {
   Calendar,
   User,
@@ -125,7 +126,7 @@ export function AssignmentDetails({ assignmentId }: AssignmentDetailsProps) {
           <TabsList className="w-full justify-start border-b rounded-none px-6">
             <TabsTrigger value="details">Детали</TabsTrigger>
             <TabsTrigger value="children">Дочерние ({assignment.children.length})</TabsTrigger>
-            <TabsTrigger value="history">История</TabsTrigger>
+            <TabsTrigger value="history">История статусов</TabsTrigger>
           </TabsList>
 
           <TabsContent value="details" className="px-6 py-4 space-y-6">
@@ -271,19 +272,7 @@ export function AssignmentDetails({ assignmentId }: AssignmentDetailsProps) {
           </TabsContent>
 
           <TabsContent value="history" className="px-6 py-4">
-            <div className="space-y-4">
-              {assignment.history.map((item, index) => (
-                <div key={index} className="flex gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary mt-2" />
-                  <div className="flex-1">
-                    <div className="text-sm text-foreground">{item.action}</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {item.user} • {item.date}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <StatusHistory entityType="assignment" entityId={Number.parseInt(assignmentId)} />
           </TabsContent>
         </Tabs>
       </div>

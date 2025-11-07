@@ -168,3 +168,27 @@ class Attachment(AttachmentBase):
     
     class Config:
         from_attributes = True
+
+# StatusHistory schemas
+class StatusHistoryBase(BaseModel):
+    entity_type: str
+    entity_id: int
+    old_status: Optional[str] = None
+    new_status: str
+    comment: Optional[str] = None
+
+class StatusHistoryCreate(StatusHistoryBase):
+    pass
+
+class StatusHistory(StatusHistoryBase):
+    id: int
+    changed_by_user_id: int
+    changed_at: datetime
+    entity_version: int
+    
+    class Config:
+        from_attributes = True
+
+class StatusHistoryWithUser(StatusHistory):
+    changed_by_name: str
+    changed_by_email: str

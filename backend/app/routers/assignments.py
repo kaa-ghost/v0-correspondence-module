@@ -4,8 +4,8 @@ from typing import List, Optional
 from datetime import datetime
 
 from app.database import get_db
-from app.schemas import Assignment, AssignmentCreate, AssignmentUpdate
-from app.models import Assignment as AssignmentModel, User, AssignmentStatus
+from app.schemas import Assignment, AssignmentCreate, AssignmentUpdate, StatusHistory, StatusHistoryWithUser
+from app.models import Assignment as AssignmentModel, User, AssignmentStatus, StatusHistory as StatusHistoryModel
 from app.auth import get_current_active_user
 
 router = APIRouter()
@@ -25,6 +25,34 @@ def generate_assignment_number(db: Session) -> str:
     
     return f"ПР-{year}-{new_num:05d}"
 
+def record_status_change(
+    db: Session,
+    entity_type: str,
+    entity_id: int,
+    old_status: Optional[str],
+    new_status: str,
+    user_id: int,
+    comment: Optional[str] = None
+):
+    """Record a status change in history"""
+    # Get current version count
+    version = db.query(StatusHistoryModel).filter(
+        StatusHistoryModel.entity_type == entity_type,
+        StatusHistoryModel.entity_id == entity_id
+    ).count() + 1
+    
+    history = StatusHistoryModel(
+        entity_type=entity_type,
+        entity_id=entity_id,
+        old_status=old_status,
+        new_status=new_status,
+        changed_by_user_id=user_id,
+        comment=comment,
+        entity_version=version
+    )
+    db.add(history)
+    db.commit()
+
 @router.post("/", response_model=Assignment)
 def create_assignment(
     assignment: AssignmentCreate,
@@ -41,6 +69,17 @@ def create_assignment(
     db.add(db_assignment)
     db.commit()
     db.refresh(db_assignment)
+    
+    record_status_change(
+        db=db,
+        entity_type="assignment",
+        entity_id=db_assignment.id,
+        old_status=None,
+        new_status=db_assignment.status.value,
+        user_id=current_user.id,
+        comment="Поручение создано"
+    )
+    
     return db_assignment
 
 @router.get("/", response_model=List[Assignment])
@@ -105,11 +144,28 @@ def update_assignment(
     if db_assignment is None:
         raise HTTPException(status_code=404, detail="Assignment not found")
     
+    old_status = db_assignment.status.value if db_assignment.status else None
+    status_changed = False
+    
     for key, value in assignment.model_dump(exclude_unset=True).items():
+        if key == "status" and value != old_status:
+            status_changed = True
         setattr(db_assignment, key, value)
     
     db.commit()
     db.refresh(db_assignment)
+    
+    if status_changed:
+        record_status_change(
+            db=db,
+            entity_type="assignment",
+            entity_id=db_assignment.id,
+            old_status=old_status,
+            new_status=db_assignment.status.value,
+            user_id=current_user.id,
+            comment="Статус изменен"
+        )
+    
     return db_assignment
 
 @router.delete("/{assignment_id}")
@@ -125,3 +181,32 @@ def delete_assignment(
     db.delete(db_assignment)
     db.commit()
     return {"message": "Assignment deleted successfully"}
+
+@router.get("/{assignment_id}/history", response_model=List[StatusHistoryWithUser])
+def get_assignment_history(
+    assignment_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get status change history for an assignment"""
+    history = db.query(
+        StatusHistoryModel,
+        User.full_name,
+        User.email
+    ).join(
+        User, StatusHistoryModel.changed_by_user_id == User.id
+    ).filter(
+        StatusHistoryModel.entity_type == "assignment",
+        StatusHistoryModel.entity_id == assignment_id
+    ).order_by(
+        StatusHistoryModel.changed_at.desc()
+    ).all()
+    
+    return [
+        {
+            **h[0].__dict__,
+            "changed_by_name": h[1],
+            "changed_by_email": h[2]
+        }
+        for h in history
+    ]
