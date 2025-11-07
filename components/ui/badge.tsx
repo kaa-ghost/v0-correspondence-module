@@ -33,4 +33,4 @@ const Badge = React.forwardRef<
 
 Badge.displayName = "Badge"
 
-export { badgeVariants }
+export { Badge, badgeVariants }
