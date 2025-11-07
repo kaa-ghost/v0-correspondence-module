@@ -100,7 +100,7 @@ export function Sidebar({ onViewChange }: SidebarProps) {
             ) : (
               <ChevronRight className="h-4 w-4" />
             )}
-            <span className="font-medium">Документы</span>
+            <span className="font-bold">Документы</span>
           </button>
 
           {expandedSections.includes("Документы") && (
@@ -115,7 +115,7 @@ export function Sidebar({ onViewChange }: SidebarProps) {
                   )}
                   onClick={() => handleItemClick(item.label, item.view, item.subView)}
                 >
-                  <item.icon className="h-4 w-4" />
+                  <item.icon className="h-4 w-4 mx-2" />
                   <span className="flex-1 text-left text-sm">{item.label}</span>
                   {item.count && (
                     <span className="text-xs bg-sidebar-primary text-sidebar-primary-foreground px-2 py-0.5 rounded-full">
@@ -139,7 +139,7 @@ export function Sidebar({ onViewChange }: SidebarProps) {
             ) : (
               <ChevronRight className="h-4 w-4" />
             )}
-            <span className="font-medium">Поручения</span>
+            <span className="font-bold">Поручения</span>
           </button>
 
           {expandedSections.includes("Поручения") && (
@@ -154,8 +154,8 @@ export function Sidebar({ onViewChange }: SidebarProps) {
                   )}
                   onClick={() => handleItemClick(item.label, item.view, item.subView)}
                 >
-                  <item.icon className="h-4 w-4" />
-                  <span className="flex-1 text-left text-sm">{item.label}</span>
+                  <item.icon className="h-4 w-4 mx-2" />
+                  <span className="flex-1 text-left text-sm mx-0">{item.label}</span>
                   {item.count && (
                     <span className="text-xs bg-sidebar-primary text-sidebar-primary-foreground px-2 py-0.5 rounded-full">
                       {item.count}
@@ -177,7 +177,7 @@ export function Sidebar({ onViewChange }: SidebarProps) {
             ) : (
               <ChevronRight className="h-4 w-4" />
             )}
-            <span className="font-medium">Инновации</span>
+            <span className="font-bold">Инновации</span>
           </button>
 
           {expandedSections.includes("Инновации") && (
