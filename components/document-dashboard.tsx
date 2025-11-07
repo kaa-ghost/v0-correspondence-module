@@ -82,7 +82,13 @@ export function DocumentDashboard({ currentUser, onLogout }: DocumentDashboardPr
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden">
           {currentView === "settings" ? (
-            currentUser && <SettingsPage currentUser={currentUser} />
+            currentUser ? (
+              <SettingsPage currentUser={currentUser} />
+            ) : (
+              <div className="flex-1 flex items-center justify-center">
+                <p className="text-muted-foreground">Пользователь не авторизован</p>
+              </div>
+            )
           ) : currentView === "innovations" ? (
             <>
               {innovationSubView === "home" && <InnovationHome />}

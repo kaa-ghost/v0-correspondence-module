@@ -35,7 +35,7 @@ const documentItems = [
   { icon: Archive, label: "Архив", view: "documents" as const, subView: "list" as const },
 /*  { icon: Folder, label: "Мои папки", view: "documents" as const, subView: "list" as const },*/
   { icon: Calendar, label: "Календарь", view: "documents" as const, subView: "calendar" as const },
-/*  { icon: Search, label: "Поиск", view: "documents" as const, subView: "list" as const },*/
+  { icon: Search, label: "Поиск", view: "documents" as const, subView: "list" as const },
 ]
 
 const assignmentItems = [
@@ -46,7 +46,7 @@ const assignmentItems = [
   { icon: AlertCircle, label: "Просроченные", count: 3, view: "assignments" as const, subView: "list" as const },
   { icon: CheckCircle2, label: "Завершенные", view: "assignments" as const, subView: "list" as const },
   { icon: Calendar, label: "Календарь", view: "assignments" as const, subView: "calendar" as const },
-/*  { icon: Search, label: "Поиск поручений", view: "assignments" as const, subView: "list" as const },*/
+  { icon: Search, label: "Поиск поручений", view: "assignments" as const, subView: "list" as const },
 ]
 
 const innovationItems = [
@@ -69,7 +69,7 @@ export function Sidebar({ onViewChange }: SidebarProps) {
     if (saved) {
       setExpandedSections(JSON.parse(saved))
     } else {
-      const defaultExpanded = ["Документы", /*"Поручения", "Инновации"*/]
+      const defaultExpanded = ["Документы", "Поручения", "Инновации"]
       setExpandedSections(defaultExpanded)
       localStorage.setItem("expandedSections", JSON.stringify(defaultExpanded))
     }
