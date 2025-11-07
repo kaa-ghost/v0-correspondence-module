@@ -11,6 +11,7 @@ import { CalendarView } from "./CalendarView"
 import { InnovationHome } from "./InnovationHome"
 import { InnovationProposals } from "./InnovationProposals"
 import { InnovationRegistry } from "./InnovationRegistry"
+import { SettingsPage } from "./SettingsPage"
 import { SearchBar } from "./SearchBar"
 import { ThemeToggle } from "./ThemeToggle"
 import { Button } from "./ui/button"
@@ -25,12 +26,12 @@ interface DocumentDashboardProps {
 export function DocumentDashboard({ currentUser, onLogout }: DocumentDashboardProps) {
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null)
   const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null)
-  const [currentView, setCurrentView] = useState<"documents" | "assignments" | "innovations">("documents")
+  const [currentView, setCurrentView] = useState<"documents" | "assignments" | "innovations" | "settings">("documents")
   const [assignmentSubView, setAssignmentSubView] = useState<"list" | "tree" | "calendar">("list")
   const [documentSubView, setDocumentSubView] = useState<"list" | "calendar">("list")
   const [innovationSubView, setInnovationSubView] = useState<"home" | "proposals" | "registry" | "search">("home")
 
-  const handleViewChange = (view: "documents" | "assignments" | "innovations", subView?: string) => {
+  const handleViewChange = (view: "documents" | "assignments" | "innovations" | "settings", subView?: string) => {
     setCurrentView(view)
     if (view === "assignments" && subView) {
       setAssignmentSubView(subView as "list" | "tree" | "calendar")
@@ -46,7 +47,8 @@ export function DocumentDashboard({ currentUser, onLogout }: DocumentDashboardPr
   const getButtonText = () => {
     if (currentView === "documents") return "Новый документ"
     if (currentView === "assignments") return "Новое поручение"
-    return "Новое предложение"
+    if (currentView === "innovations") return "Новое предложение"
+    return null
   }
 
   return (
@@ -61,10 +63,12 @@ export function DocumentDashboard({ currentUser, onLogout }: DocumentDashboardPr
           </div>
 
           <div className="flex items-center gap-3">
-            <Button variant="default" size="sm" className="gap-2">
-              <Plus className="h-4 w-4" />
-              {getButtonText()}
-            </Button>
+            {currentView !== "settings" && (
+              <Button variant="default" size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                {getButtonText()}
+              </Button>
+            )}
             <ThemeToggle />
             <Button variant="ghost" size="icon">
               <Bell className="h-5 w-5" />
@@ -80,7 +84,9 @@ export function DocumentDashboard({ currentUser, onLogout }: DocumentDashboardPr
 
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden">
-          {currentView === "innovations" ? (
+          {currentView === "settings" ? (
+            <SettingsPage currentUser={currentUser!} />
+          ) : currentView === "innovations" ? (
             <>
               {innovationSubView === "home" && <InnovationHome />}
               {innovationSubView === "proposals" && <InnovationProposals />}

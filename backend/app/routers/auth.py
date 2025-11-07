@@ -10,7 +10,7 @@ from app.schemas import (
     PasswordResetRequest, PasswordResetConfirm
 )
 from app.auth import get_password_hash, verify_password
-from app.models import User as UserModel, Session as SessionModel, PasswordResetToken
+from app.models import User as UserModel, Session as SessionModel, PasswordResetToken, UserRole
 from app.config import settings
 
 router = APIRouter()
@@ -38,6 +38,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         email=user.email,
         full_name=user.full_name,
         password_hash=hashed_password,
+        role=user.role if user.role else UserRole.USER,
         is_active=True
     )
     db.add(db_user)

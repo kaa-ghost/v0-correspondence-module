@@ -10,13 +10,17 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    role: Optional[UserRole] = UserRole.USER
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
+    role: Optional[UserRole] = None
+    is_active: Optional[bool] = None
 
 class User(UserBase):
     id: int
+    role: UserRole
     is_active: bool
     created_at: datetime
     last_login: Optional[datetime] = None
