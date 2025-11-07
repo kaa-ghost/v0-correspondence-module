@@ -11,6 +11,8 @@ export interface User {
   is_active: boolean
   created_at: string
   last_login: string | null
+  role?: string // Added role field
+  position?: string // Added position field
 }
 
 export interface LoginResponse {
@@ -29,6 +31,8 @@ const DEMO_USERS = [
     email: "admin@test.com",
     password: "admin123",
     full_name: "Администратор",
+    role: "admin",
+    position: "Системный администратор",
     is_active: true,
     created_at: new Date().toISOString(),
     last_login: new Date().toISOString(),
@@ -38,6 +42,8 @@ const DEMO_USERS = [
     email: "user@test.com",
     password: "user123",
     full_name: "Тестовый пользователь",
+    role: "user",
+    position: "Пользователь",
     is_active: true,
     created_at: new Date().toISOString(),
     last_login: new Date().toISOString(),
@@ -75,6 +81,8 @@ class ApiClient {
       id: DEMO_USERS.length + 1,
       email,
       full_name: fullName,
+      role: "user", // Added role field
+      position: "New User", // Added position field
       is_active: true,
       created_at: new Date().toISOString(),
       last_login: null,
