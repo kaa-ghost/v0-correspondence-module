@@ -39,13 +39,7 @@ export function AuthForm({ onLogin }: AuthFormProps) {
       onLogin(response.user, response.access_token)
     } catch (err) {
       console.error("[v0] Login error:", err)
-      if (err instanceof TypeError && err.message.includes("fetch")) {
-        setError(
-          "Не удается подключиться к серверу. Убедитесь, что backend запущен на http://localhost:8000 или используйте демо-режим (admin@test.com / admin123)",
-        )
-      } else {
-        setError(err instanceof Error ? err.message : "Ошибка входа")
-      }
+      setError(err instanceof Error ? err.message : "Ошибка входа")
     } finally {
       setIsLoading(false)
     }
@@ -81,11 +75,7 @@ export function AuthForm({ onLogin }: AuthFormProps) {
       }, 2000)
     } catch (err) {
       console.error("[v0] Registration error:", err)
-      if (err instanceof TypeError && err.message.includes("fetch")) {
-        setError("Не удается подключиться к серверу. Убедитесь, что backend запущен на http://localhost:8000")
-      } else {
-        setError(err instanceof Error ? err.message : "Ошибка регистрации")
-      }
+      setError(err instanceof Error ? err.message : "Ошибка регистрации")
     } finally {
       setIsLoading(false)
     }
@@ -105,11 +95,7 @@ export function AuthForm({ onLogin }: AuthFormProps) {
       setView("reset-success")
     } catch (err) {
       console.error("[v0] Password reset error:", err)
-      if (err instanceof TypeError && err.message.includes("fetch")) {
-        setError("Не удается подключиться к серверу. Убедитесь, что backend запущен на http://localhost:8000")
-      } else {
-        setError(err instanceof Error ? err.message : "Ошибка отправки письма")
-      }
+      setError(err instanceof Error ? err.message : "Ошибка отправки письма")
     } finally {
       setIsLoading(false)
     }
@@ -212,6 +198,7 @@ export function AuthForm({ onLogin }: AuthFormProps) {
               <div className="rounded-lg bg-muted p-3 text-center text-sm">
                 <p className="font-medium">Демо-доступ:</p>
                 <p className="text-muted-foreground">admin@test.com / admin123</p>
+                <p className="mt-1 text-xs text-muted-foreground">Работает в демо-режиме без backend</p>
               </div>
             </form>
           )}
