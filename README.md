@@ -2,6 +2,12 @@
 
 Комплексная система для управления корреспонденцией, поручениями и инновационными предложениями.
 
+## Архитектура
+
+**Frontend:** React 18 + TypeScript + Vite  
+**Backend:** Python FastAPI  
+**Database:** PostgreSQL (Neon)
+
 ## Возможности
 
 ### 📄 Модуль Корреспонденция
@@ -28,131 +34,194 @@
 
 ## Технологии
 
-- **Next.js 16** - React фреймворк с App Router
-- **React 19.2** - UI библиотека
+### Frontend
+- **React 18** - UI библиотека
 - **TypeScript** - Типизация
-- **Tailwind CSS v4** - Стилизация
-- **shadcn/ui** - UI компоненты
+- **Vite** - Сборщик и dev-сервер
+- **React Router** - Маршрутизация
+- **TanStack Query** - Управление серверным состоянием
+- **Tailwind CSS** - Стилизация
+- **Radix UI** - Компоненты
 - **Lucide React** - Иконки
-- **date-fns** - Работа с датами
 
-## Установка
+### Backend
+- **FastAPI** - Python веб-фреймворк
+- **SQLAlchemy** - ORM
+- **Pydantic** - Валидация данных
+- **JWT** - Аутентификация
+- **Bcrypt** - Хеширование паролей
+- **PostgreSQL** - База данных
+
+## Установка и запуск
 
 ### Предварительные требования
 
-- Node.js 18.17 или выше
-- npm, yarn или pnpm
+- Python 3.11+
+- Node.js 18.17+
+- PostgreSQL (или Neon)
 
-### Шаги установки
+### Backend (FastAPI)
 
-1. Клонируйте репозиторий:
+1. Перейдите в директорию backend:
 \`\`\`bash
-git clone <repository-url>
-cd correspondence-module
+cd backend
+\`\`\`
+
+2. Создайте виртуальное окружение:
+\`\`\`bash
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+\`\`\`
+
+3. Установите зависимости:
+\`\`\`bash
+pip install -r requirements.txt
+\`\`\`
+
+4. Настройте переменные окружения:
+\`\`\`bash
+cp .env.example .env
+# Отредактируйте .env файл с вашими настройками
+\`\`\`
+
+5. Инициализируйте базу данных:
+\`\`\`bash
+python init_db.py
+\`\`\`
+
+6. Запустите сервер:
+\`\`\`bash
+python main.py
+\`\`\`
+
+Backend будет доступен на http://localhost:8000  
+API документация: http://localhost:8000/docs
+
+### Frontend (React)
+
+1. Перейдите в директорию frontend:
+\`\`\`bash
+cd frontend
 \`\`\`
 
 2. Установите зависимости:
 \`\`\`bash
 npm install
-# или
-yarn install
-# или
-pnpm install
 \`\`\`
 
-3. Запустите сервер разработки:
+3. Запустите dev-сервер:
 \`\`\`bash
 npm run dev
-# или
-yarn dev
-# или
-pnpm dev
 \`\`\`
 
-4. Откройте [http://localhost:3000](http://localhost:3000) в браузере
+Frontend будет доступен на http://localhost:3000
 
-## Развертывание
+## Демо-доступ
 
-### Развертывание на Vercel (рекомендуется)
+Email: `admin@test.com`  
+Password: `admin123`
 
-1. Нажмите кнопку "Publish" в интерфейсе v0
-2. Или используйте [Vercel CLI](https://vercel.com/docs/cli):
-
-\`\`\`bash
-npm i -g vercel
-vercel
-\`\`\`
-
-3. Следуйте инструкциям в терминале
-
-### Развертывание на других платформах
-
-1. Соберите проект:
-\`\`\`bash
-npm run build
-\`\`\`
-
-2. Запустите production сервер:
-\`\`\`bash
-npm start
-\`\`\`
-
-Проект будет доступен на порту 3000.
+Система работает с автоматическим fallback на демо-режим, если backend недоступен.
 
 ## Структура проекта
 
 \`\`\`
-├── app/
-│   ├── layout.tsx          # Корневой layout
-│   ├── page.tsx            # Главная страница
-│   └── globals.css         # Глобальные стили
-├── components/
-│   ├── ui/                 # shadcn/ui компоненты
-│   ├── sidebar.tsx         # Боковая навигация
-│   ├── document-*.tsx      # Компоненты документов
-│   ├── assignment-*.tsx    # Компоненты поручений
-│   ├── innovation-*.tsx    # Компоненты инноваций
-│   ├── calendar-view.tsx   # Календарное представление
-│   └── theme-toggle.tsx    # Переключатель темы
-├── lib/
-│   └── utils.ts            # Утилиты
-└── public/                 # Статические файлы
+├── frontend/               # React приложение
+│   ├── src/
+│   │   ├── components/    # React компоненты
+│   │   ├── pages/         # Страницы приложения
+│   │   ├── lib/           # Утилиты и API клиент
+│   │   ├── App.tsx        # Главный компонент
+│   │   └── main.tsx       # Точка входа
+│   ├── index.html
+│   └── vite.config.ts
+│
+├── backend/               # FastAPI приложение
+│   ├── app/
+│   │   ├── models.py      # SQLAlchemy модели
+│   │   ├── schemas.py     # Pydantic схемы
+│   │   ├── auth.py        # Аутентификация
+│   │   ├── database.py    # Подключение к БД
+│   │   └── routers/       # API endpoints
+│   ├── main.py            # Точка входа FastAPI
+│   ├── init_db.py         # Инициализация БД
+│   └── requirements.txt
+│
+└── scripts/               # SQL скрипты
+    ├── 001_create_users_sessions.sql
+    ├── 002_create_all_tables.sql
+    ├── 003_create_test_user.sql
+    └── 004_seed_test_data.sql
 \`\`\`
 
-## Конфигурация
+## Развертывание
 
-### Переменные окружения
+### Frontend (Vercel)
 
-Создайте файл `.env.local` для локальной разработки:
-
-\`\`\`env
-# Добавьте необходимые переменные окружения
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+\`\`\`bash
+cd frontend
+npm run build
+vercel --prod
 \`\`\`
 
-### Next.js конфигурация
+### Backend (Railway/Render)
 
-Файл `next.config.mjs` содержит базовую конфигурацию. Измените по необходимости:
+1. Подключите GitHub репозиторий
+2. Укажите root directory: `backend`
+3. Build command: `pip install -r requirements.txt`
+4. Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
 
-\`\`\`js
-const nextConfig = {
-  typescript: {
-    ignoreBuildErrors: false, // Измените на false для строгой проверки типов
-  },
-  images: {
-    unoptimized: false, // Измените на false для оптимизации изображений
-  },
-}
+### Docker
+
+\`\`\`bash
+# Backend
+cd backend
+docker-compose up -d
+
+# Frontend
+cd frontend
+docker build -t correspondence-frontend .
+docker run -p 3000:80 correspondence-frontend
 \`\`\`
+
+## API Endpoints
+
+### Аутентификация
+- `POST /api/auth/register` - Регистрация пользователя
+- `POST /api/auth/login` - Вход в систему
+- `POST /api/auth/logout` - Выход из системы
+- `GET /api/auth/me` - Получить текущего пользователя
+
+### Документы
+- `GET /api/documents` - Список документов
+- `POST /api/documents` - Создать документ
+- `GET /api/documents/{id}` - Получить документ
+- `PUT /api/documents/{id}` - Обновить документ
+- `DELETE /api/documents/{id}` - Удалить документ
+
+### Поручения
+- `GET /api/assignments` - Список поручений
+- `POST /api/assignments` - Создать поручение
+- `GET /api/assignments/{id}` - Получить поручение
+- `PUT /api/assignments/{id}` - Обновить поручение
+
+### Инновации
+- `GET /api/innovations` - Список инноваций
+- `POST /api/innovations` - Создать инновацию
+- `GET /api/innovations/{id}` - Получить инновацию
 
 ## Разработка
 
-### Доступные скрипты
-
-- `npm run dev` - Запуск сервера разработки
+### Frontend скрипты
+- `npm run dev` - Запуск dev-сервера
 - `npm run build` - Сборка для production
-- `npm start` - Запуск production сервера
-- `npm run lint` - Проверка кода линтером
+- `npm run preview` - Предпросмотр production build
+- `npm run lint` - Проверка кода
+
+### Backend команды
+- `python main.py` - Запуск сервера
+- `python init_db.py` - Инициализация БД
+- `pytest` - Запуск тестов
 
 ### Темная/Светлая тема
 
@@ -162,9 +231,9 @@ const nextConfig = {
 
 Для получения помощи:
 - Откройте issue в репозитории
-- Обратитесь к документации Next.js: https://nextjs.org/docs
-- Документация shadcn/ui: https://ui.shadcn.com
+- Документация FastAPI: https://fastapi.tiangolo.com
+- Документация React: https://react.dev
 
 ## Лицензия
 
-Proprietary - Все права защищены
+MIT
