@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { api } from "@/lib/api"
+import { Upload, X } from "lucide-react"
 
 interface User {
   id: number
@@ -34,6 +35,7 @@ interface AddDocumentFormProps {
 export function AddDocumentForm({ open, onOpenChange, onSuccess }: AddDocumentFormProps) {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [formData, setFormData] = useState({
     source: "",
     doc_date: new Date().toISOString().split("T")[0],
@@ -68,23 +70,29 @@ export function AddDocumentForm({ open, onOpenChange, onSuccess }: AddDocumentFo
 
     try {
       const token = localStorage.getItem("token")
-      const documentData = {
-        ...formData,
-        received_by_user_id: Number.parseInt(formData.received_by_user_id),
-        doc_date: new Date(formData.doc_date).toISOString(),
-        doc_time: new Date(`2000-01-01T${formData.doc_time}`).toISOString(),
+      const formDataToSend = new FormData()
+      formDataToSend.append("source", formData.source)
+      formDataToSend.append("doc_date", new Date(formData.doc_date).toISOString())
+      formDataToSend.append("doc_time", new Date(`2000-01-01T${formData.doc_time}`).toISOString())
+      formDataToSend.append("number", formData.number)
+      formDataToSend.append("sender_name", formData.sender_name)
+      formDataToSend.append("received_by_user_id", formData.received_by_user_id)
+      formDataToSend.append("status", formData.status)
+      formDataToSend.append("title", formData.title || "")
+      formDataToSend.append("description", formData.description || "")
+
+      if (selectedFile) {
+        formDataToSend.append("file", selectedFile)
       }
 
       await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/documents`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(documentData),
+        body: formDataToSend,
       })
 
-      // Reset form
       setFormData({
         source: "",
         doc_date: new Date().toISOString().split("T")[0],
@@ -96,6 +104,7 @@ export function AddDocumentForm({ open, onOpenChange, onSuccess }: AddDocumentFo
         title: "",
         description: "",
       })
+      setSelectedFile(null)
 
       onSuccess()
       onOpenChange(false)
@@ -104,6 +113,20 @@ export function AddDocumentForm({ open, onOpenChange, onSuccess }: AddDocumentFo
       alert("Ошибка при создании документа")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0])
+    }
+  }
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null)
+    const fileInput = document.getElementById("file-upload") as HTMLInputElement
+    if (fileInput) {
+      fileInput.value = ""
     }
   }
 
@@ -117,7 +140,6 @@ export function AddDocumentForm({ open, onOpenChange, onSuccess }: AddDocumentFo
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            {/* Источник */}
             <div className="space-y-2">
               <Label htmlFor="source">
                 Источник <span className="text-destructive">*</span>
@@ -131,7 +153,6 @@ export function AddDocumentForm({ open, onOpenChange, onSuccess }: AddDocumentFo
               />
             </div>
 
-            {/* Номер */}
             <div className="space-y-2">
               <Label htmlFor="number">
                 Номер документа <span className="text-destructive">*</span>
@@ -147,7 +168,6 @@ export function AddDocumentForm({ open, onOpenChange, onSuccess }: AddDocumentFo
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* Дата */}
             <div className="space-y-2">
               <Label htmlFor="doc_date">
                 Дата <span className="text-destructive">*</span>
@@ -161,7 +181,6 @@ export function AddDocumentForm({ open, onOpenChange, onSuccess }: AddDocumentFo
               />
             </div>
 
-            {/* Время */}
             <div className="space-y-2">
               <Label htmlFor="doc_time">
                 Время <span className="text-destructive">*</span>
@@ -176,7 +195,6 @@ export function AddDocumentForm({ open, onOpenChange, onSuccess }: AddDocumentFo
             </div>
           </div>
 
-          {/* ФИО отправителя */}
           <div className="space-y-2">
             <Label htmlFor="sender_name">
               ФИО отправителя <span className="text-destructive">*</span>
@@ -190,7 +208,6 @@ export function AddDocumentForm({ open, onOpenChange, onSuccess }: AddDocumentFo
             />
           </div>
 
-          {/* Кто принял */}
           <div className="space-y-2">
             <Label htmlFor="received_by">
               Кто принял <span className="text-destructive">*</span>
@@ -213,7 +230,6 @@ export function AddDocumentForm({ open, onOpenChange, onSuccess }: AddDocumentFo
             </Select>
           </div>
 
-          {/* Статус */}
           <div className="space-y-2">
             <Label htmlFor="status">
               Статус <span className="text-destructive">*</span>
@@ -234,7 +250,6 @@ export function AddDocumentForm({ open, onOpenChange, onSuccess }: AddDocumentFo
             </Select>
           </div>
 
-          {/* Тема */}
           <div className="space-y-2">
             <Label htmlFor="title">Тема документа</Label>
             <Input
@@ -245,7 +260,6 @@ export function AddDocumentForm({ open, onOpenChange, onSuccess }: AddDocumentFo
             />
           </div>
 
-          {/* Описание */}
           <div className="space-y-2">
             <Label htmlFor="description">Описание</Label>
             <Textarea
@@ -255,6 +269,39 @@ export function AddDocumentForm({ open, onOpenChange, onSuccess }: AddDocumentFo
               placeholder="Подробное описание документа"
               rows={4}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="file-upload">Прикрепить файл</Label>
+            <div className="flex items-center gap-2">
+              {!selectedFile ? (
+                <div className="flex-1">
+                  <Input
+                    id="file-upload"
+                    type="file"
+                    onChange={handleFileChange}
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt,.xls,.xlsx"
+                    className="cursor-pointer"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Поддерживаемые форматы: PDF, DOC, DOCX, JPG, PNG, TXT, XLS, XLSX (макс. 10 МБ)
+                  </p>
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-between p-3 border rounded-md bg-muted">
+                  <div className="flex items-center gap-2">
+                    <Upload className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">{selectedFile.name}</p>
+                      <p className="text-xs text-muted-foreground">{(selectedFile.size / 1024 / 1024).toFixed(2)} МБ</p>
+                    </div>
+                  </div>
+                  <Button type="button" variant="ghost" size="icon" onClick={handleRemoveFile} className="h-8 w-8">
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
 
           <DialogFooter>
