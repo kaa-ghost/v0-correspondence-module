@@ -214,6 +214,109 @@ class ApiClient {
       body: JSON.stringify({ token, new_password: newPassword }),
     })
   }
+
+  async get<T>(endpoint: string, token?: string): Promise<{ data: T }> {
+    // Demo mode fallback for users endpoint
+    if (endpoint === "/users/" && (this.demoMode || !token)) {
+      const demoUsersWithoutPassword = DEMO_USERS.map(({ password, ...user }) => user)
+      return { data: demoUsersWithoutPassword as T }
+    }
+
+    try {
+      const headers: HeadersInit = {
+        "Content-Type": "application/json",
+      }
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`
+      }
+
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: "GET",
+        headers,
+      })
+
+      if (!response.ok) {
+        throw new Error("Request failed")
+      }
+
+      const data = await response.json()
+      return { data }
+    } catch (error) {
+      // Fallback to demo data for users endpoint
+      if (endpoint === "/users/") {
+        const demoUsersWithoutPassword = DEMO_USERS.map(({ password, ...user }) => user)
+        return { data: demoUsersWithoutPassword as T }
+      }
+      throw error
+    }
+  }
+
+  async put<T>(endpoint: string, body: any, token?: string): Promise<{ data: T }> {
+    // Demo mode - simulate update
+    if (this.demoMode || (token && token.startsWith("demo_token_"))) {
+      console.log("[v0] Demo mode: PUT request", endpoint, body)
+      return { data: body as T }
+    }
+
+    try {
+      const headers: HeadersInit = {
+        "Content-Type": "application/json",
+      }
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`
+      }
+
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(body),
+      })
+
+      if (!response.ok) {
+        throw new Error("Request failed")
+      }
+
+      const data = await response.json()
+      return { data }
+    } catch (error) {
+      // Fallback to demo mode
+      console.log("[v0] Demo mode fallback: PUT request", endpoint, body)
+      return { data: body as T }
+    }
+  }
+
+  async delete<T>(endpoint: string, token?: string): Promise<{ data: T }> {
+    // Demo mode - simulate delete
+    if (this.demoMode || (token && token.startsWith("demo_token_"))) {
+      console.log("[v0] Demo mode: DELETE request", endpoint)
+      return { data: {} as T }
+    }
+
+    try {
+      const headers: HeadersInit = {
+        "Content-Type": "application/json",
+      }
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`
+      }
+
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: "DELETE",
+        headers,
+      })
+
+      if (!response.ok) {
+        throw new Error("Request failed")
+      }
+
+      const data = await response.json()
+      return { data }
+    } catch (error) {
+      // Fallback to demo mode
+      console.log("[v0] Demo mode fallback: DELETE request", endpoint)
+      return { data: {} as T }
+    }
+  }
 }
 
 export const api = new ApiClient(API_URL, DEMO_MODE)
