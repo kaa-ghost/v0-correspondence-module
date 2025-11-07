@@ -180,7 +180,7 @@ export function SettingsPage({ currentUser }: SettingsPageProps) {
 
             <div className="space-y-4">
               <div>
-                <Label>Email</Label>
+                <Label>Email/Login</Label>
                 {isEditingProfile ? (
                   <Input
                     value={profileData.email}
